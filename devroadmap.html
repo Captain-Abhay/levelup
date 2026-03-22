@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevRoadmap Pro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root{
+  --bg:#07070f;--bg2:#0d0d1c;--s1:#111122;--s2:#17172b;--s3:#1e1e38;
+  --b1:#252540;--b2:#30305a;--b3:#3d3d6e;
+  --t1:#f0f0ff;--t2:#aaaace;--t3:#6666a0;--t4:#444468;
+  --ai:#b39dff;--done:#23d160;--learn:#f5a623;--danger:#ff4757;
+  --xp:#ffd700;
+  --r:14px;--rs:8px;
+  --font-d:'Syne',sans-serif;
+  --font-m:'JetBrains Mono',monospace;
+  --font-b:'Inter',sans-serif;
+  --sh:0 4px 24px rgba(0,0,0,.5);
+  --sh-lg:0 12px 48px rgba(0,0,0,.7);
+}
+[data-theme=light]{
+  --bg:#f0f0fa;--bg2:#e8e8f4;--s1:#fff;--s2:#f5f5fc;--s3:#eeeef8;
+  --b1:#ddddf0;--b2:#c8c8e8;--b3:#b0b0d8;
+  --t1:#0a0a20;--t2:#333358;--t3:#666690;--t4:#9999c0;
+  --sh:0 4px 20px rgba(0,0,0,.08);--sh-lg:0 12px 48px rgba(0,0,0,.15);
+}
+/* Pill link colors – same in both themes */
+.lc{background:#FFF7E6;color:#92600A;border-color:#E8B84B}
+.yt{background:#FFEAEA;color:#A30000;border-color:#E24B4A}
+.gfg{background:#EAF3DE;color:#3B6D11;border-color:#97C459}
+.hr{background:#E6F1FB;color:#185FA5;border-color:#378ADD}
+.doc{background:#EEEDFE;color:#3C3489;border-color:#7F77DD}
+.cert{background:#E1F5EE;color:#085041;border-color:#1D9E75}
+.proj{background:#FAECE7;color:#993C1D;border-color:#D85A30}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t1);font-family:var(--font-b);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s;font-size:14px}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input,select,textarea{font-family:inherit;color:inherit}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:99px}
+
+/* ── OVERLAY BACKDROP ── */
+.modal-wrap{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-wrap.open{opacity:1;pointer-events:all}
+
+/* ── AUTH OVERLAY ── */
+#authOverlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;transition:opacity .5s}
+#authOverlay.hidden{opacity:0;pointer-events:none}
+.auth-card{background:var(--s1);border:1px solid var(--b1);border-radius:24px;width:100%;max-width:420px;padding:36px;box-shadow:var(--sh-lg);text-align:center}
+.auth-logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#b39dff,#4da6ff);display:flex;align-items:center;justify-content:center;font-size:1.7rem;margin:0 auto 18px;box-shadow:0 0 28px rgba(179,157,255,.4)}
+.auth-title{font-family:var(--font-d);font-size:1.7rem;font-weight:800;letter-spacing:-.04em;margin-bottom:6px}
+.auth-sub{font-size:.82rem;color:var(--t3);margin-bottom:28px;line-height:1.6}
+.auth-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border-radius:10px;font-size:.88rem;font-weight:600;border:1px solid var(--b1);background:var(--s2);color:var(--t1);transition:all .2s;margin-bottom:10px;cursor:pointer}
+.auth-btn:hover{background:var(--s3);transform:translateY(-1px)}
+.auth-btn.google{border-color:rgba(66,133,244,.3);background:rgba(66,133,244,.07)}
+.auth-btn.google:hover{background:rgba(66,133,244,.14)}
+.auth-btn.github{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.05)}
+.auth-btn.github:hover{background:rgba(255,255,255,.11)}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:10px 0;color:var(--t4);font-size:.7rem}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--b1)}
+.auth-btn.demo{background:rgba(179,157,255,.1);border-color:rgba(179,157,255,.3);color:var(--ai)}
+.auth-btn.demo:hover{background:rgba(179,157,255,.18)}
+.auth-features{display:flex;flex-direction:column;gap:7px;margin-top:20px;text-align:left}
+.af-item{display:flex;align-items:center;gap:8px;font-size:.76rem;color:var(--t3)}
+.auth-error{margin-top:12px;padding:10px 14px;background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.25);border-radius:8px;font-size:.75rem;color:var(--danger);display:none}
+
+/* ── API KEY MODAL ── */
+.apikey-card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;width:100%;max-width:500px;overflow:hidden;box-shadow:var(--sh-lg)}
+.apikey-hdr{padding:20px 24px 16px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px}
+.apikey-hdr h2{font-family:var(--font-d);font-size:1.05rem;font-weight:800;flex:1}
+.apikey-body{padding:20px 24px 24px}
+.apikey-desc{font-size:.82rem;color:var(--t3);margin-bottom:16px;line-height:1.6}
+.ak-step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:.8rem;color:var(--t2);line-height:1.5}
+.ak-num{width:20px;height:20px;border-radius:50%;background:var(--ai);color:#fff;font-size:.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.ak-input-wrap{position:relative;margin:14px 0 4px}
+.ak-input{width:100%;padding:11px 40px 11px 13px;border:1px solid var(--b2);border-radius:10px;background:var(--s2);font-family:var(--font-m);font-size:.8rem;color:var(--t1);outline:none;transition:border .2s}
+.ak-input:focus{border-color:var(--ai)}
+.ak-vis-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.85rem;opacity:.5;cursor:pointer}
+.ak-validation{font-size:.72rem;min-height:16px;margin-bottom:8px}
+.ak-valid{color:var(--done)}.ak-invalid{color:var(--danger)}
+.ak-usage-section{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px 14px;margin:12px 0}
+.ak-usage-label{font-size:.72rem;color:var(--t3);margin-bottom:8px;font-family:var(--font-m)}
+.ak-usage-bar-wrap{height:6px;background:var(--b1);border-radius:99px;overflow:hidden;margin-bottom:6px}
+.ak-usage-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--done),var(--learn));transition:width .6s}
+.ak-usage-text{font-size:.72rem;color:var(--t2);display:flex;justify-content:space-between}
+.ak-plan-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.ak-plan{background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:10px;text-align:center}
+.ak-plan.best{border-color:rgba(179,157,255,.5);background:rgba(179,157,255,.08)}
+.ak-plan-name{font-size:.75rem;font-weight:600;margin-bottom:3px}
+.ak-plan-limit{font-size:.68rem;color:var(--t3)}
+
+/* ── HEADER ── */
+#hdr{position:sticky;top:0;z-index:100;background:rgba(7,7,15,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--b1);padding:0 16px;height:52px;display:flex;align-items:center;gap:10px}
+[data-theme=light] #hdr{background:rgba(240,240,250,.88)}
+.logo{font-family:var(--font-d);font-size:1rem;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:7px;flex-shrink:0}
+.logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#b39dff,#4da6ff);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+.hdr-mid{flex:1;display:flex;align-items:center;gap:8px;max-width:420px;margin:0 auto}
+.hdr-search{flex:1;display:flex;align-items:center;gap:8px;background:var(--s1);border:1px solid var(--b1);border-radius:99px;padding:6px 14px;cursor:pointer;transition:border .2s}
+.hdr-search:hover{border-color:var(--b2)}
+.hdr-search input{background:none;border:none;outline:none;font-size:.78rem;color:var(--t3);width:100%;cursor:pointer}
+.hdr-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ic-btn{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .18s;color:var(--t2)}
+.ic-btn:hover{background:var(--s2);color:var(--t1)}
+.xp-pill{display:flex;align-items:center;gap:5px;background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);border-radius:99px;padding:4px 10px;font-family:var(--font-m);font-size:.62rem;cursor:pointer;flex-shrink:0}
+.sync-dot-wrap{display:flex;align-items:center;gap:5px;font-family:var(--font-m);font-size:.58rem;padding:4px 9px;border-radius:99px;border:1px solid;flex-shrink:0}
+.sync-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sync-ok{background:rgba(35,209,96,.08);border-color:rgba(35,209,96,.25);color:var(--done)}
+.sync-ing{background:rgba(179,157,255,.08);border-color:rgba(179,157,255,.25);color:var(--ai)}
+.sync-off{background:rgba(245,166,35,.08);border-color:rgba(245,166,35,.25);color:var(--learn)}
+.user-avatar{width:30px;height:30px;border-radius:50%;overflow:hidden;cursor:pointer;border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;background:var(--s2);font-size:.8rem;font-weight:700;flex-shrink:0;position:relative}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+.user-menu-wrap{position:relative}
+.user-menu{position:absolute;right:0;top:calc(100%+8px);background:var(--s1);border:1px solid var(--b1);border-radius:14px;min-width:200px;box-shadow:var(--sh-lg);overflow:hidden;display:none;z-index:200}
+.user-menu.open{display:block}
+.um-info{padding:14px 16px;border-bottom:1px solid var(--b1)}
+.um-name{font-weight:700;font-size:.85rem}
+.um-email{font-size:.72rem;color:var(--t3);margin-top:2px}
+.um-item{padding:10px 16px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s}
+.um-item:hover{background:var(--s2)}
+.um-sep{height:1px;background:var(--b1)}
+.um-danger{color:var(--danger)}
+
+/* ── TABS ── */
+#tabBar{display:flex;gap:6px;padding:14px 16px 0;flex-wrap:wrap;border-bottom:1px solid var(--b1);background:var(--bg2);position:sticky;top:52px;z-index:90}
+.tab{padding:8px 16px;border-radius:12px 12px 0 0;border:1px solid transparent;background:none;cursor:pointer;font-size:.78rem;font-weight:500;color:var(--t3);transition:all .15s;border-bottom:none;position:relative;top:1px}
+.tab:hover{color:var(--t1);background:var(--s1)}
+.tab.active{background:var(--s1);color:var(--t1);border-color:var(--b1);border-bottom-color:var(--s1)}
+.tab.gen-tab{color:#534AB7;border-color:rgba(83,74,183,.2);background:rgba(83,74,183,.07)}
+.tab.gen-tab.active{background:var(--s1);color:var(--ai)}
+
+/* ── MAIN CONTENT ── */
+#appContent{background:var(--s1);border:1px solid var(--b1);border-top:none;min-height:80vh}
+.track{display:none;padding:20px 16px 40px}.track.active{display:block}
+
+/* ── PROGRESS SIDEBAR ── */
+#layout{display:grid;grid-template-columns:1fr 280px;gap:0;max-width:1400px;margin:0 auto}
+@media(max-width:900px){#layout{grid-template-columns:1fr}}
+#sidebar{border-left:1px solid var(--b1);padding:20px 16px;display:flex;flex-direction:column;gap:14px;position:sticky;top:100px;height:fit-content}
+@media(max-width:900px){#sidebar{border-left:none;border-top:1px solid var(--b1);position:static}}
+.panel{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:14px}
+.panel-hd{font-family:var(--font-m);font-size:.6rem;color:var(--t4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
+
+/* XP Panel */
+.level-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.level-badge{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--ai),#4da6ff);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:1.1rem;font-weight:800;color:#fff;flex-shrink:0}
+.level-info{flex:1}
+.level-name{font-weight:700;font-size:.85rem}
+.level-sub{font-size:.7rem;color:var(--t3)}
+.xp-bar-outer{height:6px;background:var(--b1);border-radius:99px;overflow:hidden;margin-top:8px}
+.xp-bar-inner{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--ai),#4da6ff);transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* Stats mini */
+.stat-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-mini{background:var(--s1);border:1px solid var(--b1);border-radius:8px;padding:8px;text-align:center}
+.stat-mini-v{font-family:var(--font-d);font-size:1.1rem;font-weight:800}
+.stat-mini-l{font-size:.62rem;color:var(--t3);margin-top:2px}
+
+/* Progress bars per track */
+.track-prog{margin-bottom:8px}
+.tp-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.tp-icon{font-size:.9rem}
+.tp-name{font-size:.75rem;flex:1}
+.tp-pct{font-family:var(--font-m);font-size:.65rem;color:var(--t3)}
+.tp-bar{height:4px;background:var(--b1);border-radius:99px;overflow:hidden}
+.tp-fill{height:100%;border-radius:99px;background:var(--ai);transition:width .6s}
+
+/* Streak */
+.streak-row{display:flex;align-items:center;justify-content:center;gap:8px}
+.streak-num{font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--learn)}
+.streak-info{font-size:.72rem;color:var(--t3)}
+
+/* Heatmap */
+.hmap{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px}
+.hmap-col{display:flex;flex-direction:column;gap:2px}
+.hmap-cell{width:9px;height:9px;border-radius:2px;background:var(--b1);transition:background .2s;flex-shrink:0}
+.hmap-cell.l1{background:rgba(179,157,255,.3)}.hmap-cell.l2{background:rgba(179,157,255,.55)}.hmap-cell.l3{background:rgba(179,157,255,.8)}.hmap-cell.l4{background:#b39dff}
+.hmap-footer{display:flex;justify-content:space-between;font-size:.58rem;color:var(--t4);font-family:var(--font-m);margin-top:4px}
+
+/* Weekly goal ring */
+.goal-ring-wrap{position:relative;width:68px;height:68px;flex-shrink:0}
+.goal-ring-wrap svg{transform:rotate(-90deg)}
+.goal-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.goal-n{font-family:var(--font-d);font-size:.95rem;font-weight:800}
+.goal-d{font-size:.6rem;color:var(--t3)}
+.goal-row{display:flex;align-items:center;gap:12px}
+.goal-info{flex:1}
+.goal-title{font-weight:600;font-size:.82rem;margin-bottom:2px}
+.goal-sub{font-size:.72rem;color:var(--t3);margin-bottom:4px}
+.goal-edit{font-size:.68rem;color:var(--ai);cursor:pointer}
+.goal-edit:hover{text-decoration:underline}
+
+/* ── ROADMAP CONTENT ── */
+.phase{border:1px solid var(--b1);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:box-shadow .2s}
+.phase:hover{box-shadow:var(--sh)}
+.phase-header{padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;background:var(--s2);transition:background .15s}
+.phase-header:hover{background:var(--s3)}
+.phase-badge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;flex-shrink:0}
+.phase-title{font-size:.9rem;font-weight:600;flex:1}
+.phase-meta{font-size:.72rem;color:var(--t3)}
+.chevron{font-size:.75rem;color:var(--t3);transition:transform .2s;flex-shrink:0}
+.phase-body{padding:16px;display:none;border-top:1px solid var(--b1);background:var(--s1);animation:fadeIn .2s ease}
+.phase-body.open{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:14px}
+.topic-card{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;transition:all .2s;position:relative}
+.topic-card:hover{border-color:var(--b2);box-shadow:var(--sh)}
+.topic-card.done-card{border-color:rgba(35,209,96,.35);background:rgba(35,209,96,.04)}
+.topic-name{font-size:.82rem;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.link-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+.link-pill{font-size:.68rem;padding:3px 8px;border-radius:8px;font-weight:500;border:0.5px solid;transition:opacity .15s;display:inline-flex;align-items:center;gap:3px}
+.link-pill:hover{opacity:.75}
+.section-label{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
+.cert-card{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.cert-icon{font-size:1.1rem;width:28px;text-align:center;flex-shrink:0}
+.cert-info{flex:1}
+.cert-name{font-size:.8rem;font-weight:600}
+.cert-by{font-size:.68rem;color:var(--t3)}
+.proj-card{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:12px;margin-bottom:8px}
+.proj-title{font-size:.82rem;font-weight:600;margin-bottom:4px}
+.proj-desc{font-size:.75rem;color:var(--t2);margin-bottom:8px;line-height:1.5}
+.lang-tag{font-size:.65rem;padding:2px 7px;border-radius:7px;background:var(--s3);color:var(--t3);border:0.5px solid var(--b1);display:inline-block;margin-right:3px}
+.intro-banner{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;gap:12px;align-items:flex-start}
+.intro-text{font-size:.8rem;color:var(--t2);line-height:1.6}
+.intro-title{font-size:.88rem;font-weight:600;margin-bottom:3px}
+
+/* Mark done button */
+.mark-done-btn{font-size:.62rem;padding:3px 8px;border-radius:6px;border:1px solid var(--b1);background:var(--s1);color:var(--t3);cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.mark-done-btn:hover{border-color:var(--done);color:var(--done)}
+.mark-done-btn.is-done{background:rgba(35,209,96,.12);border-color:rgba(35,209,96,.4);color:var(--done)}
+.topic-card.done-card .mark-done-btn{background:rgba(35,209,96,.12);border-color:rgba(35,209,96,.4);color:var(--done)}
+
+/* Phase progress bar */
+.phase-prog{flex-shrink:0;display:flex;align-items:center;gap:6px}
+.phase-prog-bar{width:60px;height:4px;background:var(--b1);border-radius:99px;overflow:hidden}
+.phase-prog-fill{height:100%;border-radius:99px;background:var(--done);transition:width .4s}
+.phase-prog-pct{font-family:var(--font-m);font-size:.6rem;color:var(--t3)}
+
+/* ── GENERATOR TRACK ── */
+.gen-hero{padding:.5rem 0 1rem}
+.gen-title{font-family:var(--font-d);font-size:1.3rem;font-weight:800;margin-bottom:6px}
+.gen-sub{font-size:.8rem;color:var(--t3);line-height:1.6;margin-bottom:16px}
+.input-row{display:flex;gap:8px;margin-bottom:10px}
+.topic-input{flex:1;padding:10px 14px;border:1px solid var(--b1);border-radius:10px;font-size:.85rem;background:var(--s2);color:var(--t1);outline:none;transition:border .2s}
+.topic-input:focus{border-color:var(--ai)}
+.gen-btn{padding:10px 22px;border-radius:10px;border:none;background:var(--ai);color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.gen-btn:hover{opacity:.85}.gen-btn:disabled{opacity:.4;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.chip{padding:5px 12px;border-radius:14px;border:1px solid var(--b1);font-size:.72rem;cursor:pointer;background:var(--s2);color:var(--t3);font-weight:500;transition:all .15s}
+.chip:hover{background:var(--s3);color:var(--t1)}
+.status-bar{font-size:.78rem;color:var(--t3);padding:6px 0;min-height:28px}
+.gen-output{margin-top:4px}
+.error-box{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.3);border-radius:10px;padding:12px;font-size:.8rem;color:var(--danger)}
+.progress-dots{display:inline-flex;gap:4px;align-items:center}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--t3);animation:pulse 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.history-label{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.history-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.history-chip{padding:4px 11px;border-radius:12px;border:1px solid rgba(179,157,255,.4);font-size:.72rem;cursor:pointer;background:rgba(179,157,255,.08);color:var(--ai);font-weight:500}
+.history-chip:hover{background:rgba(179,157,255,.16)}
+
+/* ── API KEY SETUP SCREEN (shown after login, before app) ── */
+#apiSetupScreen{display:none;position:fixed;inset:0;z-index:5000;background:var(--bg);align-items:center;justify-content:center;padding:20px}
+#apiSetupScreen.show{display:flex}
+.api-setup-card{background:var(--s1);border:1px solid var(--b1);border-radius:24px;width:100%;max-width:480px;padding:36px;box-shadow:var(--sh-lg)}
+.api-setup-title{font-family:var(--font-d);font-size:1.4rem;font-weight:800;margin-bottom:6px}
+.api-setup-sub{font-size:.82rem;color:var(--t3);margin-bottom:24px;line-height:1.6}
+.ak-tabs{display:flex;gap:6px;margin-bottom:18px}
+.ak-tab{padding:7px 14px;border-radius:8px;border:1px solid var(--b1);font-size:.78rem;font-weight:600;cursor:pointer;background:var(--s2);color:var(--t3);transition:all .15s}
+.ak-tab.on{background:var(--ai);color:#fff;border-color:var(--ai)}
+.ak-tab-pane{display:none}.ak-tab-pane.on{display:block}
+
+/* ── TOASTS ── */
+#toasts{position:fixed;bottom:20px;right:20px;z-index:9000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:10px 16px;font-size:.8rem;box-shadow:var(--sh);display:flex;align-items:center;gap:8px;transform:translateX(120%);transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:all;max-width:280px}
+.toast.show{transform:translateX(0)}
+
+/* ── GLOBAL SEARCH ── */
+#gSearch{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:80px 16px}
+#gSearch.open{display:flex}
+.gs-box{background:var(--s1);border:1px solid var(--b1);border-radius:16px;width:100%;max-width:560px;box-shadow:var(--sh-lg);overflow:hidden}
+.gs-input-wrap{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--b1)}
+.gs-input-wrap input{flex:1;background:none;border:none;outline:none;font-size:.9rem;color:var(--t1)}
+.gs-results{max-height:360px;overflow-y:auto;padding:8px}
+.gs-item{padding:9px 12px;border-radius:8px;cursor:pointer;font-size:.82rem;transition:background .15s;display:flex;align-items:center;gap:8px}
+.gs-item:hover{background:var(--s2)}
+.gs-item-tag{font-family:var(--font-m);font-size:.6rem;color:var(--t4);flex-shrink:0}
+
+/* ── HOSTING GUIDE MODAL ── */
+.hosting-card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;width:100%;max-width:540px;box-shadow:var(--sh-lg);overflow:hidden;max-height:85vh;overflow-y:auto}
+.hosting-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--s1)}
+.hosting-hdr h2{font-family:var(--font-d);font-size:1rem;font-weight:800;flex:1}
+.hosting-body{padding:20px 22px}
+.hosting-option{background:var(--s2);border:1px solid var(--b1);border-radius:12px;padding:16px;margin-bottom:12px}
+.ho-badge{display:inline-flex;align-items:center;font-size:.65rem;font-weight:700;color:var(--done);background:rgba(35,209,96,.1);border:1px solid rgba(35,209,96,.25);border-radius:6px;padding:2px 8px;margin-bottom:8px}
+.ho-title{font-weight:700;font-size:.88rem;margin-bottom:10px}
+.ho-step{font-size:.78rem;color:var(--t2);margin-bottom:7px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.ho-num{width:18px;height:18px;border-radius:50%;background:var(--ai);color:#fff;font-size:.58rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.hosting-note{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:8px;padding:10px 13px;font-size:.75rem;color:var(--learn);margin-top:8px;line-height:1.5}
+.code-block{font-family:var(--font-m);font-size:.72rem;background:var(--s3);border:1px solid var(--b1);border-radius:7px;padding:8px 12px;margin:8px 0;white-space:pre-wrap;line-height:1.7}
+
+/* ── USAGE MODAL ── */
+.usage-card{background:var(--s1);border:1px solid var(--b1);border-radius:20px;width:100%;max-width:420px;box-shadow:var(--sh-lg);overflow:hidden}
+.usage-hdr{padding:18px 22px 14px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:10px}
+.usage-hdr h2{font-family:var(--font-d);font-size:1rem;font-weight:800;flex:1}
+.usage-body{padding:20px 22px}
+.usage-tier-pill{font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:6px}
+.tier-free{background:rgba(245,166,35,.15);color:var(--learn);border:1px solid rgba(245,166,35,.3)}
+.tier-api{background:rgba(179,157,255,.12);color:var(--ai);border:1px solid rgba(179,157,255,.3)}
+
+/* ── BUTTONS ── */
+.btn-primary{background:var(--ai);color:#fff;padding:9px 18px;border-radius:9px;font-size:.82rem;font-weight:600;transition:opacity .2s;border:none}
+.btn-primary:hover{opacity:.85}
+.btn-secondary{background:var(--s2);color:var(--t1);padding:9px 18px;border-radius:9px;font-size:.82rem;font-weight:500;border:1px solid var(--b1);transition:all .2s}
+.btn-secondary:hover{background:var(--s3)}
+.btn-danger{background:rgba(255,71,87,.1);color:var(--danger);padding:9px 18px;border-radius:9px;font-size:.82rem;font-weight:600;border:1px solid rgba(255,71,87,.3)}
+
+/* ── MISC ── */
+.divider{border:none;border-top:1px solid var(--b1);margin:14px 0}
+.kbd{font-family:var(--font-m);font-size:.6rem;background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:2px 5px}
+.badge-hot{color:#f5a623;background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.25);border-radius:6px;padding:1px 6px;font-size:.62rem;font-weight:700}
+.badge-new{color:#23d160;background:rgba(35,209,96,.07);border:1px solid rgba(35,209,96,.25);border-radius:6px;padding:1px 6px;font-size:.62rem;font-weight:700}
+.note-indicator{width:7px;height:7px;border-radius:50%;background:var(--learn);flex-shrink:0;display:none}
+.note-indicator.has-note{display:inline-block}
+</style>
+</head>
+<body>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getAuth,GoogleAuthProvider,GithubAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import{getFirestore,doc,setDoc,getDoc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/* ─────────────────────────────────────────
+   🔑  REPLACE WITH YOUR OWN FIREBASE CONFIG
+   Free at: https://console.firebase.google.com
+   (one project, no card required)
+───────────────────────────────────────── */
+const firebaseConfig = {
+    apiKey: "AIzaSyD6schVdDlMYk6kP5JZMU7P2i2ObuJqdaA",
+    authDomain: "roadmap-6ee0b.firebaseapp.com",
+    projectId: "roadmap-6ee0b",
+    storageBucket: "roadmap-6ee0b.firebasestorage.app",
+    messagingSenderId: "1087946243444",
+    appId: "1:1087946243444:web:5916e95467217939728021"
+};
+
+let app,auth,db,googleProvider,githubProvider,_unsubSnapshot=null;
+let FB_READY=false;
+
+try{
+  app=initializeApp(firebaseConfig);
+  auth=getAuth(app);
+  db=getFirestore(app);
+  googleProvider=new GoogleAuthProvider();
+  githubProvider=new GithubAuthProvider();
+  FB_READY=!firebaseConfig.apiKey.includes('YOUR_');
+}catch(e){console.warn('Firebase init failed',e);}
+
+window._fbSignIn=async(provider)=>{
+  if(!FB_READY)return window._demoMode();
+  try{
+    const p=provider==='google'?googleProvider:githubProvider;
+    await signInWithPopup(auth,p);
+  }catch(e){
+    document.getElementById('authError').style.display='block';
+    document.getElementById('authError').textContent='Sign-in failed: '+e.message;
+  }
+};
+window._fbSignOut=async()=>{
+  if(_unsubSnapshot){_unsubSnapshot();_unsubSnapshot=null;}
+  if(FB_READY&&auth)await signOut(auth);
+  window._handleSignOut();
+};
+window._fbSave=async(uid,data)=>{
+  if(!FB_READY||!db)return;
+  try{await setDoc(doc(db,'users',uid),{data:JSON.stringify(data),ts:Date.now()},{merge:true});}catch(e){}
+};
+window._fbLoad=async(uid)=>{
+  if(!FB_READY||!db)return null;
+  try{const s=await getDoc(doc(db,'users',uid));return s.exists()?JSON.parse(s.data().data||'null'):null;}catch(e){return null;}
+};
+window._fbWatch=async(uid,cb)=>{
+  if(!FB_READY||!db)return;
+  if(_unsubSnapshot){_unsubSnapshot();}
+  _unsubSnapshot=onSnapshot(doc(db,'users',uid),(s)=>{
+    if(s.exists()){try{cb(JSON.parse(s.data().data||'null'));}catch(e){}}
+  });
+};
+
+if(FB_READY){
+  onAuthStateChanged(auth,(user)=>{
+    if(user)window._handleSignIn(user);
+    else window._handleSignOut();
+  });
+}else{
+  // Demo mode when Firebase not configured
+  setTimeout(()=>window._handleSignOut(),100);
+}
+</script>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<!-- AUTH OVERLAY -->
+<div id="authOverlay">
+  <div class="auth-card">
+    <div class="auth-logo">🗺</div>
+    <div class="auth-title">DevRoadmap Pro</div>
+    <div class="auth-sub">Sign in to sync your progress across all devices and unlock AI features.</div>
+    <button class="auth-btn google" onclick="window._fbSignIn('google')">
+      <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <button class="auth-btn github" onclick="window._fbSignIn('github')">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      Continue with GitHub
+    </button>
+    <div class="auth-divider">or</div>
+    <button class="auth-btn demo" onclick="window._demoMode()">⚡ Try without account</button>
+    <div class="auth-features">
+      <div class="af-item"><span>☁️</span> Progress synced across all your devices</div>
+      <div class="af-item"><span>🔑</span> Save your Claude API key securely</div>
+      <div class="af-item"><span>🧠</span> AI Mentor, Goal Generator & Roadmap Builder</div>
+      <div class="af-item"><span>📊</span> XP, Streaks & Activity Heatmap</div>
+    </div>
+    <div id="authError" class="auth-error"></div>
+    <p style="margin-top:14px;font-size:.68rem;color:var(--t4)">No Firebase configured? <span style="color:var(--ai);cursor:pointer" onclick="window._demoMode()">Enter demo mode →</span></p>
+  </div>
+</div>
+
+<!-- API KEY SETUP (shown once after first login) -->
+<div id="apiSetupScreen">
+  <div class="api-setup-card">
+    <div style="font-size:2rem;margin-bottom:12px">🔑</div>
+    <div class="api-setup-title">Connect Claude AI</div>
+    <div class="api-setup-sub">AI features (Mentor, Goal Generator, Roadmap Builder) need your Claude API key or work via your claude.ai subscription.</div>
+    <div class="ak-tabs">
+      <button class="ak-tab on" onclick="switchAKTab('key',this)">API Key (Recommended)</button>
+      <button class="ak-tab" onclick="switchAKTab('sub',this)">claude.ai Subscription</button>
+    </div>
+    <div id="aktab-key" class="ak-tab-pane on">
+      <div class="ak-step"><span class="ak-num">1</span><span>Go to <a href="https://console.anthropic.com/account/keys" target="_blank" style="color:var(--ai)">console.anthropic.com</a> → Create Key</span></div>
+      <div class="ak-step"><span class="ak-num">2</span><span>Free tier gives ~$5 credit (≈ 500 AI responses)</span></div>
+      <div class="ak-step"><span class="ak-num">3</span><span>Paste it below — stored securely in your Firebase profile</span></div>
+      <div class="ak-input-wrap">
+        <input id="akInput" type="password" placeholder="sk-ant-api03-..." class="ak-input" oninput="validateAKInput()">
+        <span class="ak-vis-btn" onclick="toggleAKVis()">👁</span>
+      </div>
+      <div id="akValidation" class="ak-validation"></div>
+    </div>
+    <div id="aktab-sub" class="ak-tab-pane">
+      <p style="font-size:.8rem;color:var(--t2);margin-bottom:14px;line-height:1.6">Use your existing claude.ai account (free, Pro, or Team). The generator uses the Anthropic API directly from your browser.</p>
+      <div class="ak-plan-row">
+        <div class="ak-plan"><div class="ak-plan-name">Free</div><div class="ak-plan-limit">~20 msgs/day</div></div>
+        <div class="ak-plan"><div class="ak-plan-name">Pro $20/mo</div><div class="ak-plan-limit">5× more</div></div>
+        <div class="ak-plan best"><div class="ak-plan-name">API Key</div><div class="ak-plan-limit">Pay-per-use</div></div>
+      </div>
+      <p style="font-size:.72rem;color:var(--t3);margin-top:8px">Without an API key, AI calls go through a CORS proxy. Quality is the same, but rate limits apply.</p>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn-primary" onclick="saveApiKey()">Save & Continue 🚀</button>
+      <button class="btn-secondary" onclick="skipApiKey()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- GLOBAL SEARCH -->
+<div id="gSearch" onclick="if(event.target===this)closeSearch()">
+  <div class="gs-box">
+    <div class="gs-input-wrap">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" opacity=".4"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="gsInput" placeholder="Search topics, resources, certificates..." oninput="renderSearch()" autofocus>
+      <span class="kbd">Esc</span>
+    </div>
+    <div class="gs-results" id="gsResults"></div>
+  </div>
+</div>
+
+<!-- HOSTING GUIDE MODAL -->
+<div class="modal-wrap" id="hostingModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="hosting-card">
+    <div class="hosting-hdr">
+      <span>🚀</span>
+      <h2>Host for Free (Access from Any Device)</h2>
+      <button class="ic-btn" onclick="document.getElementById('hostingModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="hosting-body">
+      <p style="font-size:.8rem;color:var(--t3);margin-bottom:16px">Host once → access from phone, tablet, laptop. All progress syncs via Firebase.</p>
+      <div class="hosting-option">
+        <div class="ho-badge">⭐ Easiest — 60 seconds</div>
+        <div class="ho-title">Option 1: Netlify Drop</div>
+        <div class="ho-step"><span class="ho-num">1</span> Save this page as <code>devroadmap.html</code></div>
+        <div class="ho-step"><span class="ho-num">2</span> Go to <a href="https://app.netlify.com/drop" target="_blank" style="color:var(--ai)">app.netlify.com/drop</a></div>
+        <div class="ho-step"><span class="ho-num">3</span> Drag the file onto the page → get a free <code>*.netlify.app</code> URL</div>
+        <div class="ho-step"><span class="ho-num">4</span> In Firebase Console → Authentication → Authorized Domains → add your netlify URL</div>
+      </div>
+      <div class="hosting-option">
+        <div class="ho-title">Option 2: GitHub Pages (Free + Version History)</div>
+        <div class="ho-step"><span class="ho-num">1</span> Create a GitHub repo, upload <code>devroadmap.html</code> as <code>index.html</code></div>
+        <div class="ho-step"><span class="ho-num">2</span> Settings → Pages → Source: <code>main</code> branch</div>
+        <div class="ho-step"><span class="ho-num">3</span> Live at <code>username.github.io/repo-name</code> in ~2 mins</div>
+      </div>
+      <div class="hosting-option">
+        <div class="ho-title">Option 3: Firebase Hosting (Same project, 1 command)</div>
+        <div class="code-block">npm install -g firebase-tools
+firebase login
+firebase init hosting  # choose existing project
+firebase deploy</div>
+        <div class="ho-step"><span class="ho-num">✓</span> Deploys to <code>yourproject.web.app</code> — auth already configured</div>
+      </div>
+      <div class="hosting-note">
+        <strong>Firebase setup required for sync.</strong> Get a free Firebase project at <a href="https://console.firebase.google.com" target="_blank" style="color:var(--learn)">console.firebase.google.com</a> → Create project → Add Web App → Copy config into this file's firebaseConfig. Enable Google & GitHub auth in Authentication → Sign-in methods.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USAGE MODAL -->
+<div class="modal-wrap" id="usageModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="usage-card">
+    <div class="usage-hdr">
+      <span>📊</span>
+      <h2>Your AI Usage <span id="usageTierPill" class="usage-tier-pill tier-free">Free</span></h2>
+      <button class="ic-btn" onclick="document.getElementById('usageModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="usage-body" id="usageBody"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header id="hdr">
+  <div class="logo"><div class="logo-icon">🗺</div>DevRoadmap<span style="color:var(--ai);font-size:.65rem;margin-left:1px">Pro</span></div>
+  <div class="hdr-mid">
+    <div class="hdr-search" onclick="openSearch()">
+      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" opacity=".4"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input placeholder="Search topics… ( / )" readonly>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="sync-dot-wrap sync-off" id="syncPill"><div class="sync-dot"></div><span id="syncLabel">Local</span></div>
+    <div class="xp-pill" id="xpPill" onclick="scrollToSidebar()" title="Your XP">⭐ <span id="hdrXP">0</span> · <span id="hdrLevel">Lv.1</span></div>
+    <button class="ic-btn" onclick="toggleTheme()" title="Toggle theme">☀</button>
+    <button class="ic-btn" onclick="document.getElementById('hostingModal').classList.add('open')" title="Hosting guide">🚀</button>
+    <button class="ic-btn" onclick="openUsageModal()" title="AI usage stats">📊</button>
+    <div class="user-menu-wrap" id="userMenuWrap" style="display:none">
+      <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()">?</div>
+      <div class="user-menu" id="userMenu">
+        <div class="um-info"><div class="um-name" id="umName">Guest</div><div class="um-email" id="umEmail">–</div></div>
+        <div class="um-item" onclick="openApiSetup();closeUserMenu()">🔑 API Key Settings</div>
+        <div class="um-item" onclick="openUsageModal();closeUserMenu()">📊 AI Usage</div>
+        <div class="um-item" onclick="document.getElementById('hostingModal').classList.add('open');closeUserMenu()">🚀 Hosting Guide</div>
+        <div class="um-item" onclick="forceSyncNow()">☁️ Sync Now</div>
+        <div class="um-sep"></div>
+        <div class="um-item um-danger" onclick="window._fbSignOut()">↩ Sign Out</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- TAB BAR -->
+<div id="tabBar">
+  <button class="tab active" onclick="switchTrack('dsa',this)">🎯 DSA & Algorithms</button>
+  <button class="tab" onclick="switchTrack('webdev',this)">🌐 Web Development</button>
+  <button class="tab" onclick="switchTrack('ai',this)">🤖 AI / ML</button>
+  <button class="tab gen-tab" onclick="switchTrack('generator',this)">✦ Generate Any Roadmap</button>
+</div>
+
+<!-- APP CONTENT -->
+<div id="appContent">
+  <div id="layout">
+    <!-- MAIN TRACKS -->
+    <div id="tracksWrap">
+
+      <!-- DSA TRACK -->
+      <div id="dsa" class="track active">
+        <div class="intro-banner"><div style="font-size:1.5rem">🎯</div><div><div class="intro-title">DSA Roadmap — Beginner to FAANG/OpenAI Level</div><div class="intro-text">~250 curated problems across 8 phases. Python-first with C++ notes. Each topic links to problems, video explanations, and resources. Mark topics done to earn XP and track progress.</div></div></div>
+        <div class="phase" data-track="dsa" data-phase="0">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#E6F1FB;color:#185FA5">Phase 1</div><div class="phase-title">Foundations — Arrays, Strings &amp; Complexity</div><div class="phase-meta">~30 problems · 2–3 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-dsa-0"></div></div><div class="phase-prog-pct" id="ppt-dsa-0">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body open">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="dsa" data-topic="Big-O & Complexity Analysis"><div class="topic-name">Big-O &amp; Complexity Analysis <span class="note-indicator" id="ni-dsa-BigO"></span></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=Mo4vesaut8g" target="_blank">YT: Big-O Crash Course</a><a class="link-pill gfg" href="https://www.geeksforgeeks.org/analysis-of-algorithms-set-1-asymptotic-analysis/" target="_blank">GFG: Asymptotic Analysis</a></div><div class="link-row"><a class="link-pill doc" href="https://www.bigocheatsheet.com/" target="_blank">Big-O Cheat Sheet</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Big-O & Complexity Analysis')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Arrays — Basics"><div class="topic-name">Arrays — Basics</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/two-sum/" target="_blank">LC: Two Sum</a><a class="link-pill lc" href="https://leetcode.com/problems/best-time-to-buy-and-sell-stock/" target="_blank">LC: Buy &amp; Sell Stock</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/contains-duplicate/" target="_blank">LC: Contains Duplicate</a><a class="link-pill lc" href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">LC: Product Except Self</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=pmN9ExDf3yQ" target="_blank">YT: Striver Arrays Series</a><a class="link-pill gfg" href="https://www.geeksforgeeks.org/array-data-structure/" target="_blank">GFG: Arrays</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Arrays — Basics')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Strings"><div class="topic-name">Strings</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/valid-anagram/" target="_blank">LC: Valid Anagram</a><a class="link-pill lc" href="https://leetcode.com/problems/valid-palindrome/" target="_blank">LC: Valid Palindrome</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/longest-common-prefix/" target="_blank">LC: Longest Common Prefix</a><a class="link-pill lc" href="https://leetcode.com/problems/reverse-words-in-a-string/" target="_blank">LC: Reverse Words</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=Mj7M01tBLtk" target="_blank">YT: String Problems</a><a class="link-pill gfg" href="https://www.geeksforgeeks.org/string-data-structure/" target="_blank">GFG: Strings</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Strings')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Two Pointers & Sliding Window"><div class="topic-name">Two Pointers &amp; Sliding Window</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/move-zeroes/" target="_blank">LC: Move Zeroes</a><a class="link-pill lc" href="https://leetcode.com/problems/3sum/" target="_blank">LC: 3Sum</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/longest-substring-without-repeating-characters/" target="_blank">LC: Longest Substring</a><a class="link-pill lc" href="https://leetcode.com/problems/minimum-window-substring/" target="_blank">LC: Min Window ★</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=MK-NZ4hN7rs" target="_blank">YT: Sliding Window</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Two Pointers & Sliding Window')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">CS50x: Introduction to Computer Science</div><div class="cert-by">Harvard / edX — Free Certificate</div></div><a class="link-pill cert" href="https://cs50.harvard.edu/x/" target="_blank">Enroll Free</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="dsa" data-phase="1">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#EAF3DE;color:#3B6D11">Phase 2</div><div class="phase-title">Hashing, Stacks &amp; Queues</div><div class="phase-meta">~30 problems · 2 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-dsa-1"></div></div><div class="phase-prog-pct" id="ppt-dsa-1">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="dsa" data-topic="Hash Maps & Sets"><div class="topic-name">Hash Maps &amp; Sets</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/group-anagrams/" target="_blank">LC: Group Anagrams</a><a class="link-pill lc" href="https://leetcode.com/problems/top-k-frequent-elements/" target="_blank">LC: Top K Frequent</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/longest-consecutive-sequence/" target="_blank">LC: Consecutive Sequence ★</a><a class="link-pill yt" href="https://www.youtube.com/watch?v=sfWyugl4JWA" target="_blank">YT: Hashing Explained</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Hash Maps & Sets')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Stacks"><div class="topic-name">Stacks</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/valid-parentheses/" target="_blank">LC: Valid Parentheses</a><a class="link-pill lc" href="https://leetcode.com/problems/min-stack/" target="_blank">LC: Min Stack</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/daily-temperatures/" target="_blank">LC: Daily Temperatures</a><a class="link-pill lc" href="https://leetcode.com/problems/largest-rectangle-in-histogram/" target="_blank">LC: Histogram ★</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Stacks')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Queues & Monotonic Stack"><div class="topic-name">Queues &amp; Monotonic Stack</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/sliding-window-maximum/" target="_blank">LC: Sliding Window Max ★</a><a class="link-pill lc" href="https://leetcode.com/problems/next-greater-element-i/" target="_blank">LC: Next Greater Element</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=Dq_ObZwTY_Q" target="_blank">YT: Monotonic Stack</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Queues & Monotonic Stack')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Problem Solving (Basic &amp; Intermediate)</div><div class="cert-by">HackerRank — Free, Recognized by recruiters</div></div><a class="link-pill cert" href="https://www.hackerrank.com/skills-verification/problem_solving_basic" target="_blank">Get Certified</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="dsa" data-phase="2">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#EEEDFE;color:#3C3489">Phase 3</div><div class="phase-title">Linked Lists, Recursion &amp; Binary Search</div><div class="phase-meta">~30 problems · 2 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-dsa-2"></div></div><div class="phase-prog-pct" id="ppt-dsa-2">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="dsa" data-topic="Linked Lists"><div class="topic-name">Linked Lists</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/reverse-linked-list/" target="_blank">LC: Reverse Linked List</a><a class="link-pill lc" href="https://leetcode.com/problems/merge-two-sorted-lists/" target="_blank">LC: Merge Sorted Lists</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/linked-list-cycle/" target="_blank">LC: Detect Cycle</a><a class="link-pill lc" href="https://leetcode.com/problems/merge-k-sorted-lists/" target="_blank">LC: Merge K Sorted ★★</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Linked Lists')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Recursion & Backtracking"><div class="topic-name">Recursion &amp; Backtracking</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/subsets/" target="_blank">LC: Subsets</a><a class="link-pill lc" href="https://leetcode.com/problems/permutations/" target="_blank">LC: Permutations</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/combination-sum/" target="_blank">LC: Combination Sum</a><a class="link-pill lc" href="https://leetcode.com/problems/n-queens/" target="_blank">LC: N-Queens ★★</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Recursion & Backtracking')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Binary Search"><div class="topic-name">Binary Search</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/binary-search/" target="_blank">LC: Binary Search</a><a class="link-pill lc" href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" target="_blank">LC: Rotated Array Min</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/median-of-two-sorted-arrays/" target="_blank">LC: Median Two Arrays ★★</a><a class="link-pill yt" href="https://www.youtube.com/watch?v=GU7DpgHINWQ" target="_blank">YT: Binary Search Full</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Binary Search')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Algorithms Specialization</div><div class="cert-by">Stanford / Coursera — Audit Free</div></div><a class="link-pill cert" href="https://www.coursera.org/specializations/algorithms" target="_blank">Enroll Free</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="dsa" data-phase="3">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#FAECE7;color:#993C1D">Phase 4</div><div class="phase-title">Trees &amp; Graphs</div><div class="phase-meta">~40 problems · 3 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-dsa-3"></div></div><div class="phase-prog-pct" id="ppt-dsa-3">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="dsa" data-topic="Binary Trees — DFS/BFS"><div class="topic-name">Binary Trees — DFS/BFS</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/invert-binary-tree/" target="_blank">LC: Invert Tree</a><a class="link-pill lc" href="https://leetcode.com/problems/lowest-common-ancestor-of-a-binary-tree/" target="_blank">LC: LCA ★</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=fAAZixBzIAI" target="_blank">YT: Tree Traversals</a><a class="link-pill gfg" href="https://www.geeksforgeeks.org/binary-tree-data-structure/" target="_blank">GFG: Binary Trees</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Binary Trees — DFS/BFS')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Graphs — BFS/DFS"><div class="topic-name">Graphs — BFS/DFS</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/number-of-islands/" target="_blank">LC: Number of Islands</a><a class="link-pill lc" href="https://leetcode.com/problems/course-schedule/" target="_blank">LC: Course Schedule ★</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=tWVWeAqZ0WU" target="_blank">YT: Graph Algorithms</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Graphs — BFS/DFS')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="Advanced Graph — Dijkstra"><div class="topic-name">Advanced Graph — Dijkstra &amp; Topo Sort</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/network-delay-time/" target="_blank">LC: Network Delay</a><a class="link-pill lc" href="https://leetcode.com/problems/course-schedule-ii/" target="_blank">LC: Course Schedule II ★</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=XB4MIexjvY0" target="_blank">YT: Dijkstra's Algorithm</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','Advanced Graph — Dijkstra')">Mark done</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="phase" data-track="dsa" data-phase="4">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#FBEAF0;color:#72243E">Phase 5</div><div class="phase-title">Dynamic Programming — The FAANG Core</div><div class="phase-meta">~40 problems · 4 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-dsa-4"></div></div><div class="phase-prog-pct" id="ppt-dsa-4">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="dsa" data-topic="1D DP — Fibonacci Patterns"><div class="topic-name">1D DP — Fibonacci Patterns</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/climbing-stairs/" target="_blank">LC: Climbing Stairs</a><a class="link-pill lc" href="https://leetcode.com/problems/house-robber/" target="_blank">LC: House Robber</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=oBt53YbR9Kk" target="_blank">YT: DP for Beginners</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','1D DP — Fibonacci Patterns')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="2D DP & Knapsack"><div class="topic-name">2D DP &amp; Knapsack</div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/longest-common-subsequence/" target="_blank">LC: LCS ★</a><a class="link-pill lc" href="https://leetcode.com/problems/edit-distance/" target="_blank">LC: Edit Distance ★★</a></div><div class="link-row"><a class="link-pill lc" href="https://leetcode.com/problems/coin-change/" target="_blank">LC: Coin Change ★</a><a class="link-pill yt" href="https://www.youtube.com/watch?v=nqowUJzG-iM" target="_blank">YT: 2D DP Patterns</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','2D DP & Knapsack')">Mark done</button></div>
+              <div class="topic-card" data-track="dsa" data-topic="System Design"><div class="topic-name">System Design</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/@ByteByteGo" target="_blank">YT: ByteByteGo</a><a class="link-pill doc" href="https://github.com/donnemartin/system-design-primer" target="_blank">System Design Primer</a></div><div class="link-row"><a class="link-pill doc" href="https://www.techinterviewhandbook.org/" target="_blank">Tech Interview Handbook</a></div><button class="mark-done-btn" onclick="toggleDone(this,'dsa','System Design')">Mark done</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WEB DEV TRACK -->
+      <div id="webdev" class="track">
+        <div class="intro-banner"><div style="font-size:1.5rem">🌐</div><div><div class="intro-title">Web Dev Roadmap — Zero to Full-Stack (FAANG-ready)</div><div class="intro-text">HTML → CSS → JS → React → Node → Databases → DevOps. Each phase ends with a real deployable project. Mark topics as done to earn XP.</div></div></div>
+        <div class="phase" data-track="webdev" data-phase="0">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#E6F1FB;color:#185FA5">Phase 1</div><div class="phase-title">HTML, CSS &amp; Responsive Design</div><div class="phase-meta">3 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-webdev-0"></div></div><div class="phase-prog-pct" id="ppt-webdev-0">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body open">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="webdev" data-topic="HTML5 Fundamentals"><div class="topic-name">HTML5 Fundamentals</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=qz0aGYrrlhU" target="_blank">YT: HTML Full Course</a><a class="link-pill doc" href="https://developer.mozilla.org/en-US/docs/Learn/HTML" target="_blank">MDN: HTML Guide</a></div><div class="link-row"><a class="link-pill gfg" href="https://www.w3schools.com/html/" target="_blank">W3Schools: HTML</a><a class="link-pill hr" href="https://www.hackerrank.com/domains/html" target="_blank">HackerRank: HTML</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','HTML5 Fundamentals')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="CSS3 & Flexbox/Grid"><div class="topic-name">CSS3 &amp; Flexbox/Grid</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=1Rs2ND1ryYc" target="_blank">YT: CSS Full Course</a><a class="link-pill doc" href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank">CSS-Tricks: Flexbox</a></div><div class="link-row"><a class="link-pill doc" href="https://cssgridgarden.com/" target="_blank">Grid Garden Game</a><a class="link-pill doc" href="https://flexboxfroggy.com/" target="_blank">Flexbox Froggy</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','CSS3 & Flexbox/Grid')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="Tailwind CSS"><div class="topic-name">Tailwind CSS</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=ft30zcMlFao" target="_blank">YT: Tailwind Crash Course</a><a class="link-pill doc" href="https://tailwindcss.com/docs" target="_blank">Tailwind Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','Tailwind CSS')">Mark done</button></div>
+            </div>
+            <div class="section-label">Project</div>
+            <div class="proj-card"><div class="proj-title">Personal Portfolio Website</div><div class="proj-desc">Fully responsive portfolio with projects, skills, and contact form. Deploy on GitHub Pages or Netlify for free.</div><div class="link-row"><span class="lang-tag">HTML</span><span class="lang-tag">CSS</span><span class="lang-tag">Tailwind</span><a class="link-pill proj" href="https://pages.github.com/" target="_blank">Deploy: GitHub Pages</a></div></div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Responsive Web Design</div><div class="cert-by">freeCodeCamp — Free, Well-recognized</div></div><a class="link-pill cert" href="https://www.freecodecamp.org/learn/2022/responsive-web-design/" target="_blank">Get Certified</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="webdev" data-phase="1">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#EAF3DE;color:#3B6D11">Phase 2</div><div class="phase-title">JavaScript — Core to Advanced</div><div class="phase-meta">4 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-webdev-1"></div></div><div class="phase-prog-pct" id="ppt-webdev-1">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="webdev" data-topic="JS Fundamentals"><div class="topic-name">JS Fundamentals</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=W6NZfCO5SIk" target="_blank">YT: JS in 1 Hour</a><a class="link-pill doc" href="https://javascript.info/" target="_blank">javascript.info</a></div><div class="link-row"><a class="link-pill hr" href="https://www.hackerrank.com/domains/tutorials/10-days-of-javascript" target="_blank">HackerRank: 10 Days JS</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','JS Fundamentals')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="Async JS — Promises & Async/Await"><div class="topic-name">Async JS — Promises &amp; Async/Await</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=PoRJizFvM7s" target="_blank">YT: Async JS Mastery</a><a class="link-pill doc" href="https://javascript.info/async" target="_blank">javascript.info: Async</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','Async JS — Promises & Async/Await')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="DOM & ES6+"><div class="topic-name">DOM &amp; ES6+</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=5fb2aPlgoys" target="_blank">YT: DOM Crash Course</a><a class="link-pill doc" href="https://exploringjs.com/es6/" target="_blank">Exploring ES6 (Free Book)</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','DOM & ES6+')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">JavaScript Algorithms &amp; Data Structures</div><div class="cert-by">freeCodeCamp — Free</div></div><a class="link-pill cert" href="https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/" target="_blank">Get Certified</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="webdev" data-phase="2">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#EEEDFE;color:#3C3489">Phase 3</div><div class="phase-title">React.js &amp; Next.js</div><div class="phase-meta">4 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-webdev-2"></div></div><div class="phase-prog-pct" id="ppt-webdev-2">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="webdev" data-topic="React Core & Hooks"><div class="topic-name">React Core &amp; Hooks</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=SqcY0GlETPk" target="_blank">YT: React in 10 Hours</a><a class="link-pill doc" href="https://react.dev/learn" target="_blank">React Official Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','React Core & Hooks')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="Next.js (Full-stack React)"><div class="topic-name">Next.js (Full-stack React)</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=ZVnjOPwW4ZA" target="_blank">YT: Next.js Full Course</a><a class="link-pill doc" href="https://nextjs.org/docs" target="_blank">Next.js Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','Next.js (Full-stack React)')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="TypeScript"><div class="topic-name">TypeScript</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=30LWjhZzg50" target="_blank">YT: TypeScript Full</a><a class="link-pill doc" href="https://www.typescriptlang.org/docs/" target="_blank">TypeScript Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','TypeScript')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Front End Development Libraries</div><div class="cert-by">freeCodeCamp — Free (React, Redux)</div></div><a class="link-pill cert" href="https://www.freecodecamp.org/learn/front-end-development-libraries/" target="_blank">Get Certified</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="webdev" data-phase="3">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#FAECE7;color:#993C1D">Phase 4</div><div class="phase-title">Backend — Node.js, APIs &amp; Databases</div><div class="phase-meta">4 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-webdev-3"></div></div><div class="phase-prog-pct" id="ppt-webdev-3">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="webdev" data-topic="Node.js & Express"><div class="topic-name">Node.js &amp; Express</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=Oe421EPjeBE" target="_blank">YT: Node.js Full Course</a><a class="link-pill doc" href="https://expressjs.com/" target="_blank">Express.js Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','Node.js & Express')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="PostgreSQL & Prisma"><div class="topic-name">PostgreSQL &amp; Prisma ORM</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=qw--VYLpxG4" target="_blank">YT: PostgreSQL Full</a><a class="link-pill doc" href="https://www.prisma.io/docs" target="_blank">Prisma Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','PostgreSQL & Prisma')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="REST APIs & JWT Auth"><div class="topic-name">REST APIs &amp; JWT Auth</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=l8WPWK9mS5M" target="_blank">YT: REST API Design</a><a class="link-pill doc" href="https://jwt.io/introduction/" target="_blank">JWT Explained</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','REST APIs & JWT Auth')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Back End Development &amp; APIs</div><div class="cert-by">freeCodeCamp — Free</div></div><a class="link-pill cert" href="https://www.freecodecamp.org/learn/back-end-development-and-apis/" target="_blank">Get Certified</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="webdev" data-phase="4">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#FAEEDA;color:#854F0B">Phase 5</div><div class="phase-title">DevOps, CI/CD &amp; Cloud</div><div class="phase-meta">2–3 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-webdev-4"></div></div><div class="phase-prog-pct" id="ppt-webdev-4">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="webdev" data-topic="Git Advanced & GitHub Actions"><div class="topic-name">Git Advanced &amp; GitHub Actions</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=RGOj5yH7evk" target="_blank">YT: Git &amp; GitHub Crash</a><a class="link-pill doc" href="https://learngitbranching.js.org/" target="_blank">Learn Git Branching (Game)</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','Git Advanced & GitHub Actions')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="Docker & Containerization"><div class="topic-name">Docker &amp; Containerization</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=pg19Z8LL06w" target="_blank">YT: Docker Full Course</a><a class="link-pill doc" href="https://labs.play-with-docker.com/" target="_blank">Play With Docker (Free)</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','Docker & Containerization')">Mark done</button></div>
+              <div class="topic-card" data-track="webdev" data-topic="AWS Fundamentals"><div class="topic-name">AWS Fundamentals</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=k1RI5locZE4" target="_blank">YT: AWS for Beginners</a><a class="link-pill doc" href="https://aws.amazon.com/training/digital/" target="_blank">AWS Free Training</a></div><button class="mark-done-btn" onclick="toggleDone(this,'webdev','AWS Fundamentals')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">AWS Cloud Practitioner Essentials</div><div class="cert-by">AWS / Coursera — Audit Free</div></div><a class="link-pill cert" href="https://www.coursera.org/learn/aws-cloud-practitioner-essentials" target="_blank">Enroll Free</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI/ML TRACK -->
+      <div id="ai" class="track">
+        <div class="intro-banner"><div style="font-size:1.5rem">🤖</div><div><div class="intro-title">AI/ML Roadmap — Targeting OpenAI, Anthropic, Google DeepMind</div><div class="intro-text">Math → Classical ML → Deep Learning → NLP/LLMs → Research. Python-first. Projects at every phase. The most in-demand track right now.</div></div></div>
+        <div class="phase" data-track="ai" data-phase="0">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#E6F1FB;color:#185FA5">Phase 1</div><div class="phase-title">Math Foundations for ML</div><div class="phase-meta">3 weeks · Do parallel with Phase 2</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-ai-0"></div></div><div class="phase-prog-pct" id="ppt-ai-0">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body open">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="ai" data-topic="Linear Algebra"><div class="topic-name">Linear Algebra</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/playlist?list=PLZHQObOWTQDPD3MizzM2xVFitgF8hE_ab" target="_blank">YT: 3Blue1Brown Linear Algebra</a></div><div class="link-row"><a class="link-pill doc" href="https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/" target="_blank">MIT OCW: Linear Algebra</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Linear Algebra')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="Calculus & Gradient Descent"><div class="topic-name">Calculus &amp; Gradient Descent</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/playlist?list=PLZHQObOWTQDMsr9K-rj53DwVRMYO3t5Yr" target="_blank">YT: 3Blue1Brown Calculus</a></div><div class="link-row"><a class="link-pill doc" href="https://www.khanacademy.org/math/multivariable-calculus" target="_blank">Khan: Multivariable</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Calculus & Gradient Descent')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="Statistics & Probability"><div class="topic-name">Statistics &amp; Probability</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/playlist?list=PL8dPuuaLjXtNM_Y-bUAhblSAdWRnmBUcr" target="_blank">YT: CrashCourse Statistics</a></div><div class="link-row"><a class="link-pill doc" href="https://www.khanacademy.org/math/statistics-probability" target="_blank">Khan: Statistics</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Statistics & Probability')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="NumPy & Pandas"><div class="topic-name">NumPy &amp; Pandas</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=QUT1VHiLmmI" target="_blank">YT: NumPy Full</a><a class="link-pill yt" href="https://www.youtube.com/watch?v=vmEHCJofslg" target="_blank">YT: Pandas Full</a></div><div class="link-row"><a class="link-pill doc" href="https://numpy.org/learn/" target="_blank">NumPy Docs</a><a class="link-pill doc" href="https://pandas.pydata.org/docs/" target="_blank">Pandas Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','NumPy & Pandas')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Mathematics for Machine Learning Specialization</div><div class="cert-by">Imperial College London / Coursera — Audit Free</div></div><a class="link-pill cert" href="https://www.coursera.org/specializations/mathematics-machine-learning" target="_blank">Enroll</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="ai" data-phase="1">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#EAF3DE;color:#3B6D11">Phase 2</div><div class="phase-title">Classical Machine Learning</div><div class="phase-meta">4 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-ai-1"></div></div><div class="phase-prog-pct" id="ppt-ai-1">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="ai" data-topic="Supervised Learning"><div class="topic-name">Supervised Learning</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=i_LwzRVP7bg" target="_blank">YT: ML Algorithms</a><a class="link-pill doc" href="https://scikit-learn.org/stable/user_guide.html" target="_blank">Scikit-learn Guide</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Supervised Learning')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="Andrew Ng ML Specialization"><div class="topic-name">Andrew Ng's ML Specialization</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/playlist?list=PLkDaE6sCZn6FNC6YRfRQc_FbeQrF8BwGI" target="_blank">YT: Andrew Ng ML</a></div><div class="link-row"><a class="link-pill cert" href="https://www.coursera.org/specializations/machine-learning-introduction" target="_blank">Coursera: ML Specialization</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Andrew Ng ML Specialization')">Mark done</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="phase" data-track="ai" data-phase="2">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#EEEDFE;color:#3C3489">Phase 3</div><div class="phase-title">Deep Learning — Neural Networks &amp; PyTorch</div><div class="phase-meta">5 weeks</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-ai-2"></div></div><div class="phase-prog-pct" id="ppt-ai-2">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="ai" data-topic="Neural Nets from Scratch"><div class="topic-name">Neural Nets from Scratch</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ" target="_blank">YT: Karpathy — Zero to Hero ★★★</a></div><div class="link-row"><a class="link-pill doc" href="https://cs231n.stanford.edu/" target="_blank">Stanford CS231n (Free)</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Neural Nets from Scratch')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="PyTorch"><div class="topic-name">PyTorch</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=V_xro1bcAuA" target="_blank">YT: PyTorch Full Course</a><a class="link-pill doc" href="https://pytorch.org/tutorials/" target="_blank">PyTorch Tutorials</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','PyTorch')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="CNNs & Computer Vision"><div class="topic-name">CNNs &amp; Computer Vision</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=ArPaAX_PhIs" target="_blank">YT: CNN Explained</a><a class="link-pill cert" href="https://www.coursera.org/specializations/deep-learning" target="_blank">DeepLearning.AI Specialization</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','CNNs & Computer Vision')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificate</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Deep Learning Specialization</div><div class="cert-by">DeepLearning.AI / Coursera — Audit Free (5 courses)</div></div><a class="link-pill cert" href="https://www.coursera.org/specializations/deep-learning" target="_blank">Enroll</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="ai" data-phase="3">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#FAECE7;color:#993C1D">Phase 4</div><div class="phase-title">NLP, Transformers &amp; LLMs</div><div class="phase-meta">5 weeks — Core for OpenAI/Anthropic roles</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-ai-3"></div></div><div class="phase-prog-pct" id="ppt-ai-3">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="ai" data-topic="NLP & Transformers"><div class="topic-name">NLP &amp; Transformers</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/playlist?list=PLoROMvodv4rOSH4v6133s9LFPRHjEmbmJ" target="_blank">YT: Stanford CS224N ★★★</a></div><div class="link-row"><a class="link-pill doc" href="https://huggingface.co/learn/nlp-course/" target="_blank">HuggingFace NLP Course</a><a class="link-pill doc" href="https://jalammar.github.io/illustrated-transformer/" target="_blank">Illustrated Transformer ★</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','NLP & Transformers')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="LLMs & Fine-Tuning"><div class="topic-name">LLMs &amp; Fine-Tuning</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=zjkBMFhNj_g" target="_blank">YT: Intro to LLMs (Karpathy)</a><a class="link-pill doc" href="https://github.com/openai/openai-cookbook" target="_blank">OpenAI Cookbook</a></div><div class="link-row"><a class="link-pill doc" href="https://docs.anthropic.com/en/docs/welcome" target="_blank">Anthropic Claude API Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','LLMs & Fine-Tuning')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="RAG, Agents & LangChain"><div class="topic-name">RAG, Agents &amp; LangChain</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=sVcwVQRHIc8" target="_blank">YT: LangChain Full Course</a><a class="link-pill doc" href="https://python.langchain.com/docs/get_started" target="_blank">LangChain Docs</a></div><div class="link-row"><a class="link-pill cert" href="https://www.deeplearning.ai/short-courses/" target="_blank">DeepLearning.AI: Free Short Courses ★</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','RAG, Agents & LangChain')">Mark done</button></div>
+            </div>
+            <div class="section-label">Free Certificates</div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Natural Language Processing Specialization</div><div class="cert-by">DeepLearning.AI / Coursera — Audit Free</div></div><a class="link-pill cert" href="https://www.coursera.org/specializations/natural-language-processing" target="_blank">Enroll</a></div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">Generative AI with Large Language Models</div><div class="cert-by">AWS + DeepLearning.AI / Coursera — Audit Free</div></div><a class="link-pill cert" href="https://www.coursera.org/learn/generative-ai-with-llms" target="_blank">Enroll</a></div>
+          </div>
+        </div>
+        <div class="phase" data-track="ai" data-phase="4">
+          <div class="phase-header" onclick="togglePhase(this)"><div class="phase-badge" style="background:#FCEBEB;color:#A32D2D">Phase 5</div><div class="phase-title">MLOps, Research &amp; FAANG AI Prep</div><div class="phase-meta">Ongoing</div><div class="phase-prog"><div class="phase-prog-bar"><div class="phase-prog-fill" id="pp-ai-4"></div></div><div class="phase-prog-pct" id="ppt-ai-4">0%</div></div><div class="chevron">▼</div></div>
+          <div class="phase-body">
+            <div class="topic-grid">
+              <div class="topic-card" data-track="ai" data-topic="MLOps & Model Deployment"><div class="topic-name">MLOps &amp; Model Deployment</div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/watch?v=9L9jn4yYFaY" target="_blank">YT: MLOps Full Course</a><a class="link-pill doc" href="https://docs.wandb.ai/" target="_blank">Weights &amp; Biases Docs</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','MLOps & Model Deployment')">Mark done</button></div>
+              <div class="topic-card" data-track="ai" data-topic="Read Research Papers"><div class="topic-name">Read Research Papers</div><div class="link-row"><a class="link-pill doc" href="https://arxiv.org/list/cs.LG/recent" target="_blank">arXiv: ML Papers</a><a class="link-pill doc" href="https://paperswithcode.com/" target="_blank">Papers With Code</a></div><div class="link-row"><a class="link-pill yt" href="https://www.youtube.com/@YannicKilcher" target="_blank">YT: Yannic Kilcher Reviews</a></div><button class="mark-done-btn" onclick="toggleDone(this,'ai','Read Research Papers')">Mark done</button></div>
+            </div>
+            <div class="section-label">Top Certificates for AI Roles</div>
+            <div class="cert-card"><div class="cert-icon">🏆</div><div class="cert-info"><div class="cert-name">TensorFlow Developer Certificate</div><div class="cert-by">Google — $100 exam, highly respected</div></div><a class="link-pill cert" href="https://www.tensorflow.org/certificate" target="_blank">Details</a></div>
+            <div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">DeepLearning.AI Short Courses (10+ free)</div><div class="cert-by">DeepLearning.AI — LLMOps, RAG, Fine-tuning, Agents</div></div><a class="link-pill cert" href="https://www.deeplearning.ai/short-courses/" target="_blank">Browse All Free</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GENERATOR TRACK -->
+      <div id="generator" class="track">
+        <div class="gen-hero">
+          <div class="gen-title">✦ Generate Any Roadmap</div>
+          <div class="gen-sub">Type any tech topic and Claude will generate a full structured learning roadmap — phases, YouTube links, documentation, LeetCode problems, projects, and free certificates.<br><span id="genKeyStatus" style="color:var(--ai)">Add your Claude API key (via the 🔑 button above) to use this feature.</span></div>
+          <div class="input-row">
+            <input class="topic-input" id="topicInput" placeholder="e.g. DevOps, Cybersecurity, Mobile Dev, Blockchain, Game Dev..." onkeydown="if(event.key==='Enter')generateRoadmap()">
+            <button class="gen-btn" id="genBtn" onclick="generateRoadmap()">Generate ↗</button>
+          </div>
+          <div class="chips">
+            <div class="chip" onclick="quickGen('DevOps')">DevOps</div>
+            <div class="chip" onclick="quickGen('Cybersecurity')">Cybersecurity</div>
+            <div class="chip" onclick="quickGen('Mobile Development with Flutter')">Mobile Dev</div>
+            <div class="chip" onclick="quickGen('Blockchain & Web3')">Blockchain</div>
+            <div class="chip" onclick="quickGen('Data Engineering')">Data Engineering</div>
+            <div class="chip" onclick="quickGen('Game Development with Unity')">Game Dev</div>
+            <div class="chip" onclick="quickGen('Cloud Architecture on AWS')">Cloud / AWS</div>
+            <div class="chip" onclick="quickGen('Open Source Contributing')">Open Source</div>
+            <div class="chip" onclick="quickGen('Embedded Systems & IoT')">Embedded / IoT</div>
+            <div class="chip" onclick="quickGen('System Design for FAANG')">System Design</div>
+            <div class="chip" onclick="quickGen('Rust Programming Language')">Rust</div>
+            <div class="chip" onclick="quickGen('Competitive Programming')">Competitive Prog.</div>
+          </div>
+          <div class="status-bar" id="status"></div>
+        </div>
+        <div id="historySection" style="display:none">
+          <div class="history-label">Previously generated</div>
+          <div class="history-chips" id="historyChips"></div>
+          <hr class="divider">
+        </div>
+        <div class="gen-output" id="output"></div>
+      </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+      <!-- XP & Level -->
+      <div class="panel">
+        <div class="panel-hd">// xp &amp; level</div>
+        <div class="level-row">
+          <div class="level-badge" id="levelBadge">1</div>
+          <div class="level-info">
+            <div class="level-name" id="levelName">Beginner</div>
+            <div class="level-sub" id="levelSub">0 XP to next level</div>
+          </div>
+        </div>
+        <div class="xp-bar-outer"><div class="xp-bar-inner" id="xpBar" style="width:0%"></div></div>
+      </div>
+      <!-- Stats -->
+      <div class="panel">
+        <div class="panel-hd">// overview</div>
+        <div class="stat-g">
+          <div class="stat-mini"><div class="stat-mini-v" id="statDone">0</div><div class="stat-mini-l">Topics Done</div></div>
+          <div class="stat-mini"><div class="stat-mini-v" id="statXP">0</div><div class="stat-mini-l">Total XP</div></div>
+          <div class="stat-mini"><div class="stat-mini-v" id="statPct">0%</div><div class="stat-mini-l">Overall</div></div>
+          <div class="stat-mini"><div class="stat-mini-v" id="statStreak">0🔥</div><div class="stat-mini-l">Day Streak</div></div>
+        </div>
+      </div>
+      <!-- Track Progress -->
+      <div class="panel">
+        <div class="panel-hd">// track progress</div>
+        <div id="trackProgressList"></div>
+      </div>
+      <!-- Weekly Goal -->
+      <div class="panel">
+        <div class="panel-hd">// weekly goal</div>
+        <div class="goal-row">
+          <div class="goal-ring-wrap">
+            <svg width="68" height="68" viewBox="0 0 68 68"><circle cx="34" cy="34" r="28" fill="none" stroke="var(--b1)" stroke-width="5"/><circle id="goalRing" cx="34" cy="34" r="28" fill="none" stroke="var(--ai)" stroke-width="5" stroke-dasharray="175.9" stroke-dashoffset="175.9" stroke-linecap="round"/></svg>
+            <div class="goal-center"><div class="goal-n" id="goalDone">0</div><div class="goal-d" id="goalOf">/ 10</div></div>
+          </div>
+          <div class="goal-info">
+            <div class="goal-title">Weekly Goal</div>
+            <div class="goal-sub" id="goalSub">0 of 10 topics</div>
+            <div class="goal-edit" onclick="editWeeklyGoal()">Change goal →</div>
+          </div>
+        </div>
+      </div>
+      <!-- Streak / Heatmap -->
+      <div class="panel">
+        <div class="panel-hd">// streak</div>
+        <div class="streak-row"><div class="streak-num" id="streakNum">0</div><div class="streak-info">🔥 day streak<br><span id="streakMsg" style="color:var(--t4);font-size:.65rem"></span></div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd">// activity (13 weeks)</div>
+        <div class="hmap" id="hmap"></div>
+        <div class="hmap-footer"><span>13w ago</span><span>today</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ─────────────────────────────────────────
+   LOCAL STATE (in-memory + Firebase sync)
+───────────────────────────────────────── */
+let STATE = {
+  progress: {},   // { 'track:topic': true }
+  notes: {},      // { 'track:topic': 'note text' }
+  streak: 0,
+  lastActive: null,
+  weeklyGoal: 10,
+  weekDone: 0,
+  xp: 0,
+  genHistory: [],
+  apiKey: '',
+  aiUsage: { calls: 0, tokens: 0 },
+  heatmap: {},    // { 'YYYY-MM-DD': count }
+};
+let _currentUser = null;
+let _saveTimer = null;
+let _isDirty = false;
+
+/* ── FIREBASE BRIDGE ── */
+window._handleSignIn = async (user) => {
+  _currentUser = user;
+  document.getElementById('authOverlay').classList.add('hidden');
+  setTimeout(()=>{document.getElementById('authOverlay').style.display='none';},500);
+  updateUserUI(user);
+  setSyncStatus('syncing','Syncing…');
+  const cloud = await window._fbLoad(user.uid);
+  if(cloud){ STATE = {...STATE, ...cloud}; }
+  applyProgress();
+  renderSidebar();
+  window._fbWatch(user.uid, (data)=>{
+    if(data && data !== STATE){ STATE = {...STATE, ...data}; applyProgress(); renderSidebar(); }
+  });
+  setSyncStatus('ok','Synced');
+  // Show API setup if no key set
+  if(!STATE.apiKey){ setTimeout(()=>{ document.getElementById('apiSetupScreen').classList.add('show'); },800); }
+  updateGenKeyStatus();
+  toast('Welcome back, '+(user.displayName?.split(' ')[0]||'friend')+'! ☁️','✅');
+};
+window._handleSignOut = () => {
+  _currentUser = null;
+  document.getElementById('authOverlay').style.display='flex';
+  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('userMenuWrap').style.display='none';
+  setSyncStatus('off','Local');
+};
+window._demoMode = () => {
+  document.getElementById('authOverlay').classList.add('hidden');
+  setTimeout(()=>{ document.getElementById('authOverlay').style.display='none'; },500);
+  setSyncStatus('off','Demo');
+  toast('Demo mode — progress not saved across devices','ℹ️');
+};
+
+function scheduleSave(){
+  _isDirty=true;
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    if(_currentUser && _isDirty){ window._fbSave(_currentUser.uid, STATE); setSyncStatus('ok','Synced'); _isDirty=false; }
+  },1200);
+}
+window.forceSyncNow=()=>{
+  if(!_currentUser){ toast('Not signed in','⚠️'); return; }
+  setSyncStatus('syncing','Syncing…');
+  window._fbSave(_currentUser.uid, STATE).then(()=>{ setSyncStatus('ok','Synced'); toast('Synced!','☁️'); });
+};
+
+/* ── AUTH UI ── */
+function updateUserUI(user){
+  const wrap=document.getElementById('userMenuWrap');
+  wrap.style.display='flex';
+  const av=document.getElementById('userAvatar');
+  if(user.photoURL){ av.innerHTML=`<img src="${user.photoURL}" alt="">`; }
+  else{ av.textContent=(user.displayName||user.email||'U')[0].toUpperCase(); }
+  document.getElementById('umName').textContent=user.displayName||'User';
+  document.getElementById('umEmail').textContent=user.email||'';
+}
+function toggleUserMenu(){ document.getElementById('userMenu').classList.toggle('open'); }
+function closeUserMenu(){ document.getElementById('userMenu').classList.remove('open'); }
+document.addEventListener('click',e=>{ if(!e.target.closest('.user-menu-wrap')) closeUserMenu(); });
+
+function setSyncStatus(state,label){
+  const p=document.getElementById('syncPill');
+  const l=document.getElementById('syncLabel');
+  p.className='sync-dot-wrap '+(state==='ok'?'sync-ok':state==='syncing'?'sync-ing':'sync-off');
+  l.textContent=label;
+  if(state==='syncing'){ const d=p.querySelector('.sync-dot'); if(d){ d.style.animation='pulse 1s infinite'; } }
+}
+
+/* ── API KEY ── */
+function switchAKTab(id,el){
+  document.querySelectorAll('.ak-tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.ak-tab-pane').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('aktab-'+id)?.classList.add('on');
+}
+function toggleAKVis(){ const i=document.getElementById('akInput'); i.type=i.type==='password'?'text':'password'; }
+function validateAKInput(){
+  const v=document.getElementById('akInput').value.trim();
+  const el=document.getElementById('akValidation');
+  if(!v){ el.textContent=''; return; }
+  if(v.startsWith('sk-ant-')){ el.className='ak-validation ak-valid'; el.textContent='✓ Valid format'; }
+  else{ el.className='ak-validation ak-invalid'; el.textContent='Key should start with sk-ant-'; }
+}
+function saveApiKey(){
+  const v=document.getElementById('akInput')?.value.trim()||'';
+  if(v && !v.startsWith('sk-ant-')){ toast('Invalid key format','⚠️'); return; }
+  STATE.apiKey=v;
+  scheduleSave();
+  document.getElementById('apiSetupScreen').classList.remove('show');
+  updateGenKeyStatus();
+  toast(v?'API key saved 🔑':'Skipped — AI features limited','✅');
+}
+function skipApiKey(){
+  document.getElementById('apiSetupScreen').classList.remove('show');
+  updateGenKeyStatus();
+}
+function openApiSetup(){
+  document.getElementById('akInput') && (document.getElementById('akInput').value=STATE.apiKey||'');
+  document.getElementById('apiSetupScreen').classList.add('show');
+}
+function updateGenKeyStatus(){
+  const el=document.getElementById('genKeyStatus');
+  if(!el) return;
+  if(STATE.apiKey){ el.textContent='✓ API key configured — ready to generate!'; el.style.color='var(--done)'; }
+  else{ el.innerHTML='No API key set. <span style="text-decoration:underline;cursor:pointer" onclick="openApiSetup()">Add yours →</span>'; el.style.color='var(--learn)'; }
+}
+
+/* ── PROGRESS TRACKING ── */
+function toggleDone(btn, track, topic){
+  const key=`${track}:${topic}`;
+  const wasDone=STATE.progress[key];
+  if(wasDone){ delete STATE.progress[key]; }
+  else{ STATE.progress[key]=true; awardXP(10); updateStreak(); updateHeatmap(); }
+  const card=btn.closest('.topic-card');
+  card.classList.toggle('done-card',!wasDone);
+  btn.classList.toggle('is-done',!wasDone);
+  btn.textContent=!wasDone?'✓ Done':'Mark done';
+  scheduleSave();
+  renderSidebar();
+  if(!wasDone) confettiBurst();
+}
+function applyProgress(){
+  document.querySelectorAll('.topic-card[data-track]').forEach(card=>{
+    const track=card.dataset.track, topic=card.dataset.topic;
+    if(!track||!topic) return;
+    const isDone=STATE.progress[`${track}:${topic}`];
+    card.classList.toggle('done-card',!!isDone);
+    const btn=card.querySelector('.mark-done-btn');
+    if(btn){ btn.classList.toggle('is-done',!!isDone); btn.textContent=isDone?'✓ Done':'Mark done'; }
+  });
+  renderPhaseProgress();
+}
+
+/* ── XP & LEVELS ── */
+const LEVELS=[
+  {name:'Beginner',min:0,max:100},{name:'Learner',min:100,max:300},{name:'Practitioner',min:300,max:600},
+  {name:'Developer',min:600,max:1000},{name:'Engineer',min:1000,max:1500},{name:'Senior Dev',min:1500,max:2200},
+  {name:'Tech Lead',min:2200,max:3000},{name:'Architect',min:3000,max:4000},{name:'Staff Engineer',min:4000,max:5500},
+  {name:'FAANG Ready',min:5500,max:Infinity}
+];
+function getLevel(xp){ return LEVELS.findIndex((l,i)=>xp>=l.min&&(i===LEVELS.length-1||xp<LEVELS[i+1].min)); }
+function awardXP(pts){ STATE.xp=(STATE.xp||0)+pts; }
+function renderXP(){
+  const xp=STATE.xp||0;
+  const li=getLevel(xp);
+  const lv=LEVELS[li];
+  const lvNext=LEVELS[Math.min(li+1,LEVELS.length-1)];
+  const pct=lv.max===Infinity?100:Math.round((xp-lv.min)/(lvNext.min-lv.min)*100);
+  document.getElementById('levelBadge').textContent=li+1;
+  document.getElementById('levelName').textContent=lv.name;
+  document.getElementById('levelSub').textContent=lv.max===Infinity?'Max level!':`${lvNext.min-xp} XP to Level ${li+2}`;
+  document.getElementById('xpBar').style.width=pct+'%';
+  document.getElementById('hdrXP').textContent=xp;
+  document.getElementById('hdrLevel').textContent=`Lv.${li+1}`;
+  document.getElementById('statXP').textContent=xp;
+}
+
+/* ── STREAK ── */
+function updateStreak(){
+  const today=new Date().toISOString().slice(0,10);
+  const last=STATE.lastActive;
+  if(last===today){ return; }
+  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  if(last===yesterday){ STATE.streak=(STATE.streak||0)+1; }
+  else if(last&&last!==today){ STATE.streak=1; }
+  else{ STATE.streak=(STATE.streak||0)+1; }
+  STATE.lastActive=today;
+  // Weekly done
+  const weekStart=getWeekStart();
+  if(!STATE.weekStart||STATE.weekStart!==weekStart){ STATE.weekDone=0; STATE.weekStart=weekStart; }
+  STATE.weekDone=(STATE.weekDone||0)+1;
+}
+function getWeekStart(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().slice(0,10); }
+function updateHeatmap(){
+  const today=new Date().toISOString().slice(0,10);
+  STATE.heatmap=STATE.heatmap||{};
+  STATE.heatmap[today]=(STATE.heatmap[today]||0)+1;
+}
+
+/* ── SIDEBAR ── */
+function renderSidebar(){
+  renderXP();
+  // Overall stats
+  const allKeys=Object.keys(STATE.progress);
+  const totalTopics=document.querySelectorAll('.topic-card[data-topic]').length||1;
+  document.getElementById('statDone').textContent=allKeys.length;
+  document.getElementById('statPct').textContent=Math.round(allKeys.length/totalTopics*100)+'%';
+  document.getElementById('statStreak').textContent=(STATE.streak||0)+'🔥';
+  // Track progress
+  const tracks=['dsa','webdev','ai'];
+  const trackNames={'dsa':'🎯 DSA','webdev':'🌐 Web Dev','ai':'🤖 AI / ML'};
+  const list=document.getElementById('trackProgressList');
+  list.innerHTML=tracks.map(t=>{
+    const done=Object.keys(STATE.progress).filter(k=>k.startsWith(t+':')).length;
+    const total=document.querySelectorAll(`.topic-card[data-track="${t}"]`).length||1;
+    const pct=Math.round(done/total*100);
+    return `<div class="track-prog"><div class="tp-row"><span class="tp-name">${trackNames[t]}</span><span class="tp-pct">${pct}%</span></div><div class="tp-bar"><div class="tp-fill" style="width:${pct}%"></div></div></div>`;
+  }).join('');
+  // Weekly goal
+  const wg=STATE.weeklyGoal||10;
+  const wd=STATE.weekDone||0;
+  document.getElementById('goalDone').textContent=Math.min(wd,wg);
+  document.getElementById('goalOf').textContent='/ '+wg;
+  document.getElementById('goalSub').textContent=`${Math.min(wd,wg)} of ${wg} topics`;
+  const ring=document.getElementById('goalRing');
+  const pct2=Math.min(wd/wg,1);
+  const circ=175.9;
+  ring.style.strokeDashoffset=circ-(circ*pct2);
+  // Streak
+  document.getElementById('streakNum').textContent=STATE.streak||0;
+  document.getElementById('streakMsg').textContent=STATE.streak>0?`Last active ${STATE.lastActive||'today'}`:'Start today!';
+  // Heatmap
+  renderHeatmap();
+  renderPhaseProgress();
+}
+function renderPhaseProgress(){
+  document.querySelectorAll('.phase[data-track][data-phase]').forEach(ph=>{
+    const track=ph.dataset.track, pi=ph.dataset.phase;
+    const cards=ph.querySelectorAll('.topic-card[data-topic]');
+    const done=[...cards].filter(c=>STATE.progress[`${track}:${c.dataset.topic}`]).length;
+    const pct=cards.length?Math.round(done/cards.length*100):0;
+    const fill=document.getElementById(`pp-${track}-${pi}`);
+    const pctEl=document.getElementById(`ppt-${track}-${pi}`);
+    if(fill){ fill.style.width=pct+'%'; }
+    if(pctEl){ pctEl.textContent=pct+'%'; }
+  });
+}
+function renderHeatmap(){
+  const hmap=document.getElementById('hmap');
+  if(!hmap) return;
+  const today=new Date();
+  const cells=[];
+  for(let w=12;w>=0;w--){
+    const col=[];
+    for(let d=0;d<7;d++){
+      const dt=new Date(today);
+      dt.setDate(dt.getDate()-w*7-d);
+      const key=dt.toISOString().slice(0,10);
+      const cnt=(STATE.heatmap||{})[key]||0;
+      const cls=cnt===0?'':cnt===1?'l1':cnt<=3?'l2':cnt<=6?'l3':'l4';
+      col.push(`<div class="hmap-cell ${cls}" title="${key}: ${cnt} topics"></div>`);
+    }
+    cells.push(`<div class="hmap-col">${col.join('')}</div>`);
+  }
+  hmap.innerHTML=cells.join('');
+}
+
+/* ── WEEKLY GOAL EDIT ── */
+function editWeeklyGoal(){
+  const v=prompt('Set weekly goal (topics to complete per week):',STATE.weeklyGoal||10);
+  if(v&&!isNaN(v)&&parseInt(v)>0){ STATE.weeklyGoal=parseInt(v); scheduleSave(); renderSidebar(); }
+}
+
+/* ── TAB / PHASE TOGGLE ── */
+function switchTrack(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.track').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id)?.classList.add('active');
+  el.classList.add('active');
+}
+function togglePhase(hdr){
+  const body=hdr.nextElementSibling;
+  const ch=hdr.querySelector('.chevron');
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  ch.style.transform=isOpen?'':'rotate(180deg)';
+}
+
+/* ── GLOBAL SEARCH ── */
+const SEARCH_INDEX=[];
+function buildSearchIndex(){
+  document.querySelectorAll('.topic-card[data-topic]').forEach(c=>{
+    const track=c.dataset.track, topic=c.dataset.topic;
+    SEARCH_INDEX.push({label:topic,type:'topic',track,card:c,
+      links:[...c.querySelectorAll('.link-pill')].map(l=>l.textContent.trim()).join(' ')});
+  });
+}
+function openSearch(){ document.getElementById('gSearch').classList.add('open'); document.getElementById('gsInput').focus(); renderSearch(); }
+function closeSearch(){ document.getElementById('gSearch').classList.remove('open'); }
+function renderSearch(){
+  const q=(document.getElementById('gsInput').value||'').toLowerCase();
+  const res=document.getElementById('gsResults');
+  if(!q){ res.innerHTML='<div style="padding:20px;text-align:center;color:var(--t4);font-size:.78rem">Type to search topics, resources, and certificates…</div>'; return; }
+  const matches=SEARCH_INDEX.filter(i=>i.label.toLowerCase().includes(q)||i.links.toLowerCase().includes(q)).slice(0,12);
+  if(!matches.length){ res.innerHTML='<div style="padding:16px;text-align:center;color:var(--t4);font-size:.78rem">No results found</div>'; return; }
+  res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.track}','${m.card.dataset.topic}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${m.track.toUpperCase()}</span></div>`).join('');
+}
+function goToTopic(track,topic){
+  const tabBtn=[...document.querySelectorAll('.tab')].find(t=>t.textContent.toLowerCase().includes(track.toLowerCase()));
+  if(tabBtn) tabBtn.click();
+  setTimeout(()=>{
+    const card=document.querySelector(`.topic-card[data-track="${track}"][data-topic="${CSS.escape(topic)}"]`);
+    if(card){ card.closest('.phase-body')?.classList.add('open'); card.scrollIntoView({behavior:'smooth',block:'center'}); card.style.outline='2px solid var(--ai)'; setTimeout(()=>card.style.outline='',2000); }
+  },100);
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){ e.preventDefault(); openSearch(); }
+  if(e.key==='Escape'){ closeSearch(); }
+});
+
+/* ── USAGE MODAL ── */
+function openUsageModal(){
+  const modal=document.getElementById('usageModal');
+  const body=document.getElementById('usageBody');
+  const usage=STATE.aiUsage||{calls:0,tokens:0};
+  const hasKey=!!STATE.apiKey;
+  const tierPill=document.getElementById('usageTierPill');
+  tierPill.textContent=hasKey?'API Key':'Free / Demo';
+  tierPill.className='usage-tier-pill '+(hasKey?'tier-api':'tier-free');
+  const freeTierLimit=500;
+  const pct=Math.min(Math.round(usage.calls/freeTierLimit*100),100);
+  body.innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:6px"><span>AI calls this session</span><strong>${usage.calls}</strong></div>
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:6px"><span>Estimated tokens used</span><strong>${(usage.tokens||0).toLocaleString()}</strong></div>
+    </div>
+    ${hasKey?`
+    <div class="ak-usage-section">
+      <div class="ak-usage-label">Monthly usage estimate (API key)</div>
+      <div class="ak-usage-bar-wrap"><div class="ak-usage-bar" style="width:${pct}%"></div></div>
+      <div class="ak-usage-text"><span>${usage.calls} calls</span><span>~$${((usage.tokens||0)*0.000003).toFixed(4)} est. cost</span></div>
+    </div>
+    <p style="font-size:.72rem;color:var(--t3);margin-top:10px">Claude Sonnet pricing: ~$3/M input tokens, $15/M output tokens. Actual cost may vary.</p>
+    `:`
+    <div style="background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:10px;padding:12px;font-size:.8rem;color:var(--learn)">
+      Using demo mode — add an API key for unlimited AI features.
+      <br><button class="btn-primary" style="margin-top:8px;font-size:.75rem;padding:6px 14px" onclick="openApiSetup();document.getElementById('usageModal').classList.remove('open')">Add API Key →</button>
+    </div>
+    `}
+    <button class="btn-secondary" style="margin-top:14px;width:100%" onclick="document.getElementById('usageModal').classList.remove('open')">Close</button>
+  `;
+  modal.classList.add('open');
+}
+
+/* ── AI GENERATOR ── */
+const PHASE_COLORS=[
+  {bg:'#E6F1FB',color:'#185FA5'},{bg:'#EAF3DE',color:'#3B6D11'},{bg:'#EEEDFE',color:'#3C3489'},
+  {bg:'#FAECE7',color:'#993C1D'},{bg:'#FAEEDA',color:'#854F0B'},{bg:'#FBEAF0',color:'#72243E'},
+  {bg:'#FCEBEB',color:'#A32D2D'},
+];
+function quickGen(t){ document.getElementById('topicInput').value=t; generateRoadmap(); }
+function addToHistory(t){
+  if((STATE.genHistory||[]).includes(t)) return;
+  STATE.genHistory=([t,...(STATE.genHistory||[])]).slice(0,10);
+  const sec=document.getElementById('historySection');
+  sec.style.display='block';
+  document.getElementById('historyChips').innerHTML=STATE.genHistory.map(h=>`<div class="history-chip" onclick="quickGen('${h}')">${h}</div>`).join('');
+  scheduleSave();
+}
+function renderGenRoadmap(data,topic){
+  let html=`<div style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--b1)">${data.title||topic} — Learning Roadmap</div>`;
+  (data.phases||[]).forEach((phase,i)=>{
+    const c=PHASE_COLORS[i%PHASE_COLORS.length];
+    html+=`<div class="phase"><div class="phase-header" onclick="togglePhase(this)">
+      <div class="phase-badge" style="background:${c.bg};color:${c.color}">Phase ${i+1}</div>
+      <div class="phase-title">${phase.title||''}</div>
+      <div class="phase-meta">${phase.duration||''}</div>
+      <div class="chevron">${i===0?'▲':'▼'}</div>
+    </div><div class="phase-body${i===0?' open':''}">`;
+    if(phase.topics?.length){
+      html+=`<div class="topic-grid">`;
+      phase.topics.forEach(t=>{
+        html+=`<div class="topic-card"><div class="topic-name">${t.name||''}</div>`;
+        if(t.links?.length){ html+=`<div class="link-row">`; t.links.forEach(l=>{ html+=`<a class="link-pill ${l.type||'doc'}" href="${l.url||'#'}" target="_blank">${l.label||''}</a>`; }); html+=`</div>`; }
+        html+=`</div>`;
+      });
+      html+=`</div>`;
+    }
+    if(phase.projects?.length){ html+=`<div class="section-label">Projects</div>`; phase.projects.forEach(p=>{ html+=`<div class="proj-card"><div class="proj-title">${p.title||''}</div><div class="proj-desc">${p.description||''}</div><div class="link-row">${(p.tags||[]).map(g=>`<span class="lang-tag">${g}</span>`).join('')}</div></div>`; }); }
+    if(phase.certificates?.length){ html+=`<div class="section-label">Free Certificates</div>`; phase.certificates.forEach(cert=>{ html+=`<div class="cert-card"><div class="cert-icon">🏅</div><div class="cert-info"><div class="cert-name">${cert.name||''}</div><div class="cert-by">${cert.provider||''}</div></div><a class="link-pill cert" href="${cert.url||'#'}" target="_blank">Enroll</a></div>`; }); }
+    html+=`</div></div>`;
+  });
+  return html;
+}
+async function generateRoadmap(){
+  const topic=(document.getElementById('topicInput').value||'').trim();
+  if(!topic){ toast('Enter a topic first','⚠️'); return; }
+  if(!STATE.apiKey){ toast('Add your Claude API key first 🔑','⚠️'); openApiSetup(); return; }
+  const btn=document.getElementById('genBtn');
+  const status=document.getElementById('status');
+  const output=document.getElementById('output');
+  btn.disabled=true;
+  output.innerHTML='';
+  status.innerHTML=`<span class="progress-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>&nbsp; Generating <strong>${topic}</strong> roadmap with Claude…`;
+  const systemPrompt=`You are an expert tech educator. Generate a comprehensive learning roadmap as a JSON object.
+Return ONLY valid JSON — no markdown, no backticks, no preamble.
+Structure:
+{
+  "title": "Topic Name",
+  "phases": [
+    {
+      "title": "Phase title",
+      "duration": "X weeks",
+      "topics": [
+        {
+          "name": "Topic name",
+          "links": [
+            {"type": "yt", "label": "YT: Video Title", "url": "https://youtube.com/..."},
+            {"type": "doc", "label": "Docs: Title", "url": "https://..."},
+            {"type": "gfg", "label": "GFG: Title", "url": "https://geeksforgeeks.org/..."},
+            {"type": "lc", "label": "LC: Problem", "url": "https://leetcode.com/..."},
+            {"type": "hr", "label": "HR: Title", "url": "https://hackerrank.com/..."},
+            {"type": "cert", "label": "Course Title", "url": "https://..."}
+          ]
+        }
+      ],
+      "projects": [{"title": "Project", "description": "What to build", "tags": ["Tech1"]}],
+      "certificates": [{"name": "Cert Name", "provider": "Platform — Free/Paid", "url": "https://..."}]
+    }
+  ]
+}
+Rules: 5–7 phases, beginner to FAANG-ready, 3–5 topics per phase with 2–4 real working links each, 1–2 projects per phase, real URLs only.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':STATE.apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,system:systemPrompt,messages:[{role:'user',content:`Generate a complete FAANG-level learning roadmap for: ${topic}`}]})
+    });
+    const data=await resp.json();
+    if(data.error) throw new Error(data.error.message||'API error');
+    const text=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    STATE.aiUsage=STATE.aiUsage||{calls:0,tokens:0};
+    STATE.aiUsage.calls++;
+    STATE.aiUsage.tokens+=(data.usage?.input_tokens||0)+(data.usage?.output_tokens||0);
+    let cleaned=text.replace(/```json|```/g,'').trim();
+    const s=cleaned.indexOf('{'),e=cleaned.lastIndexOf('}');
+    if(s>-1&&e>-1) cleaned=cleaned.slice(s,e+1);
+    const parsed=JSON.parse(cleaned);
+    status.innerHTML=`<span style="color:var(--done)">✓ Roadmap generated for <strong>${topic}</strong></span>`;
+    output.innerHTML=renderGenRoadmap(parsed,topic);
+    addToHistory(topic);
+    scheduleSave();
+  }catch(err){
+    status.innerHTML='';
+    output.innerHTML=`<div class="error-box">Error: ${err.message}. Check your API key or try again.</div>`;
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+/* ── THEME ── */
+function toggleTheme(){
+  const isDark=!document.documentElement.dataset.theme;
+  document.documentElement.dataset.theme=isDark?'light':'';
+  document.getElementById('hdr').querySelector('.ic-btn').textContent=isDark?'🌙':'☀';
+}
+
+/* ── TOAST ── */
+function toast(msg,icon='ℹ️'){
+  const el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>el.classList.add('show')); });
+  setTimeout(()=>{ el.classList.remove('show'); setTimeout(()=>el.remove(),400); },3000);
+}
+
+/* ── CONFETTI ── */
+function confettiBurst(){
+  const colors=['#b39dff','#23d160','#ffd700','#4da6ff','#ff6bb5'];
+  for(let i=0;i<16;i++){
+    const el=document.createElement('div');
+    Object.assign(el.style,{
+      position:'fixed',left:Math.random()*100+'vw',top:'60vh',width:'7px',height:'7px',
+      borderRadius:'50%',background:colors[i%colors.length],zIndex:'9999',
+      transform:'translateY(0)',opacity:'1',pointerEvents:'none',
+      transition:`transform ${0.6+Math.random()*0.4}s ease-out, opacity 0.6s`
+    });
+    document.body.appendChild(el);
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        el.style.transform=`translate(${(Math.random()-0.5)*120}px, -${80+Math.random()*80}px)`;
+        el.style.opacity='0';
+      });
+    });
+    setTimeout(()=>el.remove(),1200);
+  }
+}
+
+/* ── SCROLL SIDEBAR ── */
+function scrollToSidebar(){ document.getElementById('sidebar')?.scrollIntoView({behavior:'smooth'}); }
+
+/* ── HISTORY RESTORE ── */
+function restoreGenHistory(){
+  if(!STATE.genHistory?.length) return;
+  document.getElementById('historySection').style.display='block';
+  document.getElementById('historyChips').innerHTML=STATE.genHistory.map(h=>`<div class="history-chip" onclick="quickGen('${h}')">${h}</div>`).join('');
+}
+
+/* ── INIT ── */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildSearchIndex();
+  renderSidebar();
+  restoreGenHistory();
+  updateGenKeyStatus();
+  // Handle history chips display from STATE
+  if(STATE.genHistory?.length){ document.getElementById('historySection').style.display='block'; }
+});
+</script>
+</body>
+</html>
