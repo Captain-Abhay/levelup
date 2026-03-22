@@ -352,7 +352,6 @@ const firebaseConfig = {
     messagingSenderId: "1087946243444",
     appId: "1:1087946243444:web:5916e95467217939728021"
 };
-
 let app,auth,db,googleProvider,githubProvider,_unsubSnapshot=null;
 let FB_READY=false;
 
@@ -892,28 +891,34 @@ let _isDirty = false;
 window._handleSignIn = async (user) => {
   _currentUser = user;
   document.getElementById('authOverlay').classList.add('hidden');
-  setTimeout(()=>{document.getElementById('authOverlay').style.display='none';},500);
+  setTimeout(() => { document.getElementById('authOverlay').style.display = 'none'; }, 500);
   updateUserUI(user);
-  setSyncStatus('syncing','Syncing…');
-  const cloud = await window._fbLoad(user.uid);
-  if(cloud){ STATE = {...STATE, ...cloud}; }
-  applyProgress();
-  renderSidebar();
-  window._fbWatch(user.uid, (data)=>{
-    if(data && data !== STATE){ STATE = {...STATE, ...data}; applyProgress(); renderSidebar(); }
+  setSyncStatus('syncing', 'Syncing…');
+  const data = await window._fbLoad(user.uid);
+  if (data) {
+    STATE = { ...STATE, ...data };
+    applyProgress();
+    renderSidebar();
+    restoreGenHistory();
+    updateGenKeyStatus();
+  }
+  window._fbWatch(user.uid, (newData) => {
+    if (newData) {
+      STATE = { ...STATE, ...newData };
+      applyProgress();
+      renderSidebar();
+    }
   });
-  setSyncStatus('ok','Synced');
-  // Show API setup if no key set
-  if(!STATE.apiKey){ setTimeout(()=>{ document.getElementById('apiSetupScreen').classList.add('show'); },800); }
-  updateGenKeyStatus();
-  toast('Welcome back, '+(user.displayName?.split(' ')[0]||'friend')+'! ☁️','✅');
+  setSyncStatus('ok', 'Synced');
+  if (!STATE.apiKey) { setTimeout(() => { document.getElementById('apiSetupScreen').classList.add('show'); }, 800); }
+  toast('Welcome back, ' + (user.displayName?.split(' ')[0] || 'friend') + '! ☁️', '✅');
 };
 window._handleSignOut = () => {
   _currentUser = null;
-  document.getElementById('authOverlay').style.display='flex';
+  document.getElementById('authOverlay').style.display = 'flex';
   document.getElementById('authOverlay').classList.remove('hidden');
-  document.getElementById('userMenuWrap').style.display='none';
-  setSyncStatus('off','Local');
+  document.getElementById('userMenuWrap').style.display = 'none';
+  setSyncStatus('off', 'Local');
 };
 window._demoMode = () => {
   document.getElementById('authOverlay').classList.add('hidden');
