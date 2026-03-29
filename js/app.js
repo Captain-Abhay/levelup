@@ -40,6 +40,118 @@ function logError(message, extra){
   else console.error(APP_LOG_PREFIX, message, extra);
 }
 
+const MOJIBAKE_EXACT_REPLACEMENTS = {
+  'ðŸ—º': 'DR',
+  'Ã°Å¸â€”Âº': 'DR',
+  'ðŸŽ¯': 'DSA',
+  'Ã°Å¸Å½Â¯': 'DSA',
+  'ðŸŒ': 'Web',
+  'ðŸ¤–': 'AI',
+  'ðŸ“Š': 'Stats',
+  'ðŸ”‘': 'Key',
+  'ðŸš€': 'Go',
+  'â˜€': 'L',
+  'ðŸŒ™': 'D',
+  'âŒ¨ï¸': '?',
+  'âœ•': 'x',
+  'â–²': '^',
+  'â–¼': 'v'
+};
+
+const MOJIBAKE_INLINE_REPLACEMENTS = [
+  ['Ã¢â‚¬â€', '-'],
+  ['Ã¢â‚¬â€œ', '-'],
+  ['Ã¢â‚¬Â¦', '...'],
+  ['Ã¢â‚¬â„¢', "'"],
+  ['Ã‚Â·', '|'],
+  ['Ã¢â€“Â²', '^'],
+  ['Ã¢â€“Â¼', 'v'],
+  ['â€”', '-'],
+  ['â€“', '-'],
+  ['â€¦', '...'],
+  ['â†’', '->'],
+  ['Â·', '|'],
+  ['â‰ˆ', '~'],
+  ['Ã—', 'x'],
+  ['Ã°Å¸â€Â¥', ''],
+  ['Ã¢Å¡Â¡', ''],
+  ['Ã°Å¸â€™Â¡', ''],
+  ['Ã°Å¸Â§Â ', ''],
+  ['Ã°Å¸â€œÅ ', ''],
+  ['Ã°Å¸â€â€˜', ''],
+  ['Ã°Å¸Å¡â‚¬', ''],
+  ['Ã¢Ëœï¸', ''],
+  ['Ã¢Å’Â¨Ã¯Â¸Â', '?'],
+  ['Ã°Å¸â€™Â¾', ''],
+  ['Ã°Å¸â€œÂ¥', ''],
+  ['Ã°Å¸â€œï¿½', ''],
+  ['Ã°Å¸Å½Â¯', ''],
+  ['ðŸ”¥', ''],
+  ['âš¡', ''],
+  ['ðŸ’¡', ''],
+  ['ðŸ§ ', ''],
+  ['ðŸ—º', ''],
+  ['ðŸŽ¯', ''],
+  ['ðŸŒ', ''],
+  ['ðŸ¤–', ''],
+  ['ðŸ“Š', ''],
+  ['ðŸ”‘', ''],
+  ['ðŸš€', ''],
+  ['â˜ï¸', ''],
+  ['âŒ¨ï¸', '?'],
+  ['â¬‡ï¸', ''],
+  ['ðŸ’¾', ''],
+  ['ðŸ“¥', ''],
+  ['ðŸ“', ''],
+  ['â†©', ''],
+  ['âœ“', ''],
+  ['âœ¦', ''],
+  ['âœ•', 'x'],
+  ['â–²', '^'],
+  ['â–¼', 'v']
+];
+
+function normalizeMojibakeText(value){
+  if(typeof value !== 'string' || !value) return value;
+  const trimmed = value.trim();
+  if(MOJIBAKE_EXACT_REPLACEMENTS[trimmed]){
+    const prefix = value.match(/^\s*/)?.[0] || '';
+    const suffix = value.match(/\s*$/)?.[0] || '';
+    return prefix + MOJIBAKE_EXACT_REPLACEMENTS[trimmed] + suffix;
+  }
+  let next = value;
+  MOJIBAKE_INLINE_REPLACEMENTS.forEach(([bad, good]) => {
+    next = next.split(bad).join(good);
+  });
+  return next
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/\(\s+/g, '(')
+    .replace(/\s+\)/g, ')')
+    .replace(/\s+\|/g, ' |');
+}
+
+function normalizeVisibleText(root=document.body){
+  if(!root) return;
+  const textNodes = [];
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  while(walker.nextNode()) textNodes.push(walker.currentNode);
+  textNodes.forEach((node)=>{
+    const next = normalizeMojibakeText(node.nodeValue);
+    if(next !== node.nodeValue) node.nodeValue = next;
+  });
+  root.querySelectorAll('[placeholder],[title]').forEach((el)=>{
+    if(el.hasAttribute('placeholder')){
+      const next = normalizeMojibakeText(el.getAttribute('placeholder'));
+      if(next !== el.getAttribute('placeholder')) el.setAttribute('placeholder', next);
+    }
+    if(el.hasAttribute('title')){
+      const next = normalizeMojibakeText(el.getAttribute('title'));
+      if(next !== el.getAttribute('title')) el.setAttribute('title', next);
+    }
+  });
+}
+
 function persistLocalSnapshot(){
   try{
     localStorage.setItem('devroadmap-local-state', JSON.stringify(STATE));
@@ -96,7 +208,7 @@ window._handleSignIn = async (user) => {
   document.getElementById('authOverlay').classList.add('hidden');
   setTimeout(() => { document.getElementById('authOverlay').style.display = 'none'; }, 500);
   updateUserUI(user);
-  setSyncStatus('syncing', 'Syncingâ€¦');
+  setSyncStatus('syncing', 'Syncing...');
   const data = await window._fbLoad(user.uid);
   if (data) {
     STATE = sanitizeLoadedState({ ...STATE, ...data });
@@ -120,7 +232,7 @@ window._handleSignIn = async (user) => {
   });
   setSyncStatus('ok', 'Synced');
   if (!getActiveProviderConfig().apiKey && getActiveProvider().id !== 'prompt') { setTimeout(() => { document.getElementById('apiSetupScreen').classList.add('show'); }, 800); }
-  toast('Welcome back, ' + (user.displayName?.split(' ')[0] || 'friend') + '! â˜ï¸', 'âœ…');
+  toast('Welcome back, ' + (user.displayName?.split(' ')[0] || 'friend') + '!', 'OK');
 };
 window._handleSignOut = () => {
   _currentUser = null;
@@ -144,7 +256,7 @@ window._demoMode = () => {
   renderSidebar();
   restoreGenHistory();
   updateGenKeyStatus();
-  toast('Demo mode â€” progress not saved across devices','â„¹ï¸');
+  toast('Demo mode - progress is stored only on this device.','i');
 };
 
 function scheduleSave(){
@@ -155,14 +267,14 @@ function scheduleSave(){
     try{
       persistLocalSnapshot();
       if(!_currentUser){ _isDirty=false; return; }
-      setSyncStatus('syncing','Syncingâ€¦');
+      setSyncStatus('syncing','Syncing...');
       await window._fbSave(_currentUser.uid, STATE);
       setSyncStatus('ok','Synced');
       _isDirty=false;
     }catch(error){
       logError('Scheduled save failed', error);
       setSyncStatus('off','Local');
-      toast('Sync failed. Your local changes are still kept.','âš ï¸');
+      toast('Sync failed. Your local changes are still kept.','!');
     }
   },1200);
 }
@@ -170,14 +282,14 @@ window.forceSyncNow=()=>{
   try{
     persistLocalSnapshot();
   }catch(error){
-    toast('Local save failed. Check browser storage.','âš ï¸');
+    toast('Local save failed. Check browser storage.','!');
     return;
   }
-  if(!_currentUser){ toast('Saved locally. Sign in to sync across devices.','â„¹ï¸'); return; }
-  setSyncStatus('syncing','Syncingâ€¦');
+  if(!_currentUser){ toast('Saved locally. Sign in to sync across devices.','i'); return; }
+  setSyncStatus('syncing','Syncing...');
   window._fbSave(_currentUser.uid, STATE)
-    .then(()=>{ setSyncStatus('ok','Synced'); toast('Synced!','â˜ï¸'); _isDirty=false; })
-    .catch((error)=>{ logError('Force sync failed', error); setSyncStatus('off','Local'); toast('Sync failed. Try again in a moment.','âš ï¸'); });
+    .then(()=>{ setSyncStatus('ok','Synced'); toast('Synced!','OK'); _isDirty=false; })
+    .catch((error)=>{ logError('Force sync failed', error); setSyncStatus('off','Local'); toast('Sync failed. Try again in a moment.','!'); });
 };
 
 /* â”€â”€ AUTH UI â”€â”€ */
@@ -252,14 +364,14 @@ function saveApiKey(){
   const provider=getActiveProvider();
   const config=getActiveProviderConfig();
   if(provider.id!=='prompt' && !config.apiKey){
-    toast('Add your ' + provider.name + ' API key or switch to Prompt Mode.','âš ï¸');
+    toast('Add your ' + provider.name + ' API key or switch to Prompt Mode.','!');
     return;
   }
   STATE.apiKey=STATE.ai.providers.anthropic.apiKey||'';
   scheduleSave();
   document.getElementById('apiSetupScreen').classList.remove('show');
   updateGenKeyStatus();
-  toast(provider.id==='prompt'?'Prompt Mode enabled':'Provider settings saved','âœ…');
+  toast(provider.id==='prompt'?'Prompt Mode enabled':'Provider settings saved','OK');
 }
 function skipApiKey(){
   document.getElementById('apiSetupScreen').classList.remove('show');
@@ -280,7 +392,7 @@ function updateGenKeyStatus(){
     return;
   }
   if(config.apiKey){
-    el.textContent='âœ“ ' + provider.name + ' configured â€” ready to generate!';
+    el.textContent=provider.name + ' configured - ready to generate.';
     el.style.color='var(--done)';
   }else{
     el.innerHTML='No key set for ' + provider.name + '. <span style="text-decoration:underline;cursor:pointer" onclick="openApiSetup()">Configure provider</span> or switch to Prompt Mode.';
@@ -311,7 +423,7 @@ function exportBackup(){
   a.download=`devroadmap-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('Backup exported','ðŸ’¾');
+  toast('Backup exported','Save');
 }
 
 async function importBackup(event){
@@ -329,10 +441,10 @@ async function importBackup(event){
     restoreGenHistory();
     updateGenKeyStatus();
     scheduleSave();
-    toast('Backup imported successfully','âœ…');
+    toast('Backup imported successfully','OK');
   }catch(error){
     logError('Backup import failed', error);
-    toast('Import failed. Please choose a valid JSON backup.','âš ï¸');
+    toast('Import failed. Please choose a valid JSON backup.','!');
   }
 }
 
@@ -368,6 +480,7 @@ function enhanceTopicCards(){
       const markDone=card.querySelector('.mark-done-btn');
       const noteBtn=card.querySelector('.note-btn');
       const noteBox=card.querySelector('.note-box');
+      if(noteBtn) noteBtn.textContent='Note';
       if(!footer && markDone && noteBtn){
         footer=document.createElement('div');
         footer.className='topic-card-footer';
@@ -403,7 +516,7 @@ function toggleBookmark(btn, track, topic){
   scheduleSave();
   updateBookmarkButtons();
   renderSidebar();
-  toast(STATE.bookmarks[key]?'Saved to bookmarks':'Removed from bookmarks', STATE.bookmarks[key]?'â˜…':'â„¹ï¸');
+  toast(STATE.bookmarks[key]?'Saved to bookmarks':'Removed from bookmarks', STATE.bookmarks[key]?'Save':'i');
 }
 
 function undoLastAction(){
@@ -423,13 +536,13 @@ function undoLastAction(){
   applyProgress();
   renderSidebar();
   scheduleSave();
-  toast('Last action undone','â†©');
+  toast('Last action undone','Undo');
 }
 
 function showUndoToast(topic){
   const el=document.createElement('div');
   el.className='toast';
-  el.innerHTML=`<span>âœ…</span><span>${topic} done.</span><button class="btn-secondary" style="padding:4px 10px;font-size:.7rem;margin-left:auto" onclick="undoLastAction(); this.closest('.toast').remove()">Undo</button>`;
+  el.innerHTML=`<span>Done</span><span>${topic} done.</span><button class="btn-secondary" style="padding:4px 10px;font-size:.7rem;margin-left:auto" onclick="undoLastAction(); this.closest('.toast').remove()">Undo</button>`;
   document.getElementById('toasts').appendChild(el);
   requestAnimationFrame(()=>{ requestAnimationFrame(()=>el.classList.add('show')); });
   setTimeout(()=>{ if(el.isConnected){ el.classList.remove('show'); setTimeout(()=>el.remove(),400); } },5000);
@@ -448,7 +561,7 @@ function toggleDone(btn, track, topic){
   const card=btn.closest('.topic-card');
   card.classList.toggle('done-card',!wasDone);
   btn.classList.toggle('is-done',!wasDone);
-  btn.textContent=!wasDone?'âœ“ Done':'Mark done';
+  btn.textContent=!wasDone?'Done':'Mark done';
   scheduleSave();
   renderSidebar();
   if(!wasDone){ confettiBurst(); showUndoToast(topic); }
@@ -460,7 +573,7 @@ function applyProgress(){
     const isDone=STATE.progress[`${track}:${topic}`];
     card.classList.toggle('done-card',!!isDone);
     const btn=card.querySelector('.mark-done-btn');
-    if(btn){ btn.classList.toggle('is-done',!!isDone); btn.textContent=isDone?'âœ“ Done':'Mark done'; }
+    if(btn){ btn.classList.toggle('is-done',!!isDone); btn.textContent=isDone?'Done':'Mark done'; }
   });
   applyNotes();
   updateBookmarkButtons();
@@ -576,10 +689,10 @@ function renderSidebar(){
   const totalTopics=_totalTopicsCache;
   document.getElementById('statDone').textContent=allKeys.length;
   document.getElementById('statPct').textContent=Math.round(allKeys.length/totalTopics*100)+'%';
-  document.getElementById('statStreak').textContent=(STATE.streak||0)+'ðŸ”¥';
+  document.getElementById('statStreak').textContent=(STATE.streak||0)+' days';
   // Track progress
   const tracks=['dsa','webdev','ai'];
-  const trackNames={'dsa':'ðŸŽ¯ DSA','webdev':'ðŸŒ Web Dev','ai':'ðŸ¤– AI / ML'};
+  const trackNames={'dsa':'DSA','webdev':'Web Dev','ai':'AI / ML'};
   const list=document.getElementById('trackProgressList');
   list.innerHTML=tracks.map(t=>{
     const done=Object.keys(STATE.progress).filter(k=>k.startsWith(t+':')).length;
@@ -663,7 +776,7 @@ function closeSearch(){ document.getElementById('gSearch').classList.remove('ope
 function renderSearch(){
   const q=(document.getElementById('gsInput').value||'').toLowerCase();
   const res=document.getElementById('gsResults');
-  if(!q){ res.innerHTML='<div style="padding:20px;text-align:center;color:var(--t4);font-size:.78rem">Type to search topics, resources, and certificatesâ€¦</div>'; return; }
+  if(!q){ res.innerHTML='<div style="padding:20px;text-align:center;color:var(--t4);font-size:.78rem">Type to search topics, resources, and certificates...</div>'; return; }
   const matches=SEARCH_INDEX.filter(i=>i.label.toLowerCase().includes(q)||i.links.toLowerCase().includes(q)).slice(0,12);
   if(!matches.length){ res.innerHTML='<div style="padding:16px;text-align:center;color:var(--t4);font-size:.78rem">No results found</div>'; return; }
   res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.track}','${m.card.dataset.topic}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${m.track.toUpperCase()}</span></div>`).join('');
@@ -717,7 +830,7 @@ function openUsageModal(){
     `:`
     <div style="background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:10px;padding:12px;font-size:.8rem;color:var(--learn)">
       ${provider.id==='prompt'?'Prompt Mode is active. You can copy prompts into free web chat tools, or connect an API for in-app generation.':'No API key saved for the active provider yet.'}
-      <br><button class="btn-primary" style="margin-top:8px;font-size:.75rem;padding:6px 14px" onclick="openApiSetup();document.getElementById('usageModal').classList.remove('open')">Configure AI â†’</button>
+      <br><button class="btn-primary" style="margin-top:8px;font-size:.75rem;padding:6px 14px" onclick="openApiSetup();document.getElementById('usageModal').classList.remove('open')">Configure AI -></button>
     </div>
     `}
     <button class="btn-secondary" style="margin-top:14px;width:100%" onclick="document.getElementById('usageModal').classList.remove('open')">Close</button>
@@ -741,7 +854,7 @@ function addToHistory(t){
   scheduleSave();
 }
 function renderGenRoadmap(data,topic){
-  let html=`<div style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--b1)">${data.title||topic} â€” Learning Roadmap</div>`;
+  let html=`<div style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;margin-bottom:8px;padding-bottom:10px;border-bottom:1px solid var(--b1)">${data.title||topic} - Learning Roadmap</div>`;
   if(data.summary){
     html+=`<div class="intro-banner" style="margin-bottom:14px"><div style="font-size:1.4rem">Plan</div><div><div class="intro-title">Roadmap Summary</div><div class="intro-text">${data.summary}</div></div></div>`;
   }
@@ -751,7 +864,7 @@ function renderGenRoadmap(data,topic){
       <div class="phase-badge" style="background:${c.bg};color:${c.color}">Phase ${i+1}</div>
       <div class="phase-title">${phase.title||''}</div>
       <div class="phase-meta">${phase.duration||''}</div>
-      <div class="chevron">${i===0?'â–²':'â–¼'}</div>
+      <div class="chevron">${i===0?'^':'v'}</div>
     </div><div class="phase-body${i===0?' open':''}">`;
     if(phase.goal){ html+=`<div class="topic-note" style="margin-bottom:12px"><strong>Goal:</strong> ${phase.goal}</div>`; }
     if(phase.topics?.length){
@@ -759,34 +872,34 @@ function renderGenRoadmap(data,topic){
       phase.topics.forEach(t=>{
         html+=`<div class="topic-card"><div class="topic-name">${t.name||''}</div>`;
         if(t.why_it_matters){ html+=`<div class="topic-note"><strong>Why it matters:</strong> ${t.why_it_matters}</div>`; }
-        if(t.focus_points?.length){ html+=`<div class="topic-note"><strong>Focus:</strong> ${t.focus_points.join(' · ')}</div>`; }
+        if(t.focus_points?.length){ html+=`<div class="topic-note"><strong>Focus:</strong> ${t.focus_points.join(' | ')}</div>`; }
         if(t.links?.length){ html+=`<div class="link-row">`; t.links.forEach(l=>{ html+=`<a class="link-pill ${l.type||'doc'}" href="${l.url||'#'}" target="_blank">${l.label||''}</a>`; }); html+=`</div>`; }
         html+=`</div>`;
       });
       html+=`</div>`;
     }
     if(phase.projects?.length){ html+=`<div class="section-label">Projects</div>`; phase.projects.forEach(p=>{ html+=`<div class="proj-card"><div class="proj-title">${p.title||''}</div><div class="proj-desc">${p.description||''}</div><div class="link-row">${(p.tags||[]).map(g=>`<span class="lang-tag">${g}</span>`).join('')}</div></div>`; }); }
-    if(phase.certificates?.length){ html+=`<div class="section-label">Free Certificates</div>`; phase.certificates.forEach(cert=>{ html+=`<div class="cert-card"><div class="cert-icon">ðŸ…</div><div class="cert-info"><div class="cert-name">${cert.name||''}</div><div class="cert-by">${cert.provider||''}</div></div><a class="link-pill cert" href="${cert.url||'#'}" target="_blank">Enroll</a></div>`; }); }
+    if(phase.certificates?.length){ html+=`<div class="section-label">Free Certificates</div>`; phase.certificates.forEach(cert=>{ html+=`<div class="cert-card"><div class="cert-icon">Cert</div><div class="cert-info"><div class="cert-name">${cert.name||''}</div><div class="cert-by">${cert.provider||''}</div></div><a class="link-pill cert" href="${cert.url||'#'}" target="_blank">Enroll</a></div>`; }); }
     html+=`</div></div>`;
   });
   if(data.career_notes?.length){
-    html+=`<div class="intro-banner" style="margin-top:12px"><div style="font-size:1.4rem">Tips</div><div><div class="intro-title">Career Notes</div><div class="intro-text">${data.career_notes.join(' · ')}</div></div></div>`;
+    html+=`<div class="intro-banner" style="margin-top:12px"><div style="font-size:1.4rem">Tips</div><div><div class="intro-title">Career Notes</div><div class="intro-text">${data.career_notes.join(' | ')}</div></div></div>`;
   }
   if(data.free_options?.length){
-    html+=`<div class="intro-banner"><div style="font-size:1.4rem">Free</div><div><div class="intro-title">Free Options</div><div class="intro-text">${data.free_options.join(' · ')}</div></div></div>`;
+    html+=`<div class="intro-banner"><div style="font-size:1.4rem">Free</div><div><div class="intro-title">Free Options</div><div class="intro-text">${data.free_options.join(' | ')}</div></div></div>`;
   }
   return html;
 }
 async function generateRoadmap(){
   const topic=(document.getElementById('topicInput').value||'').trim();
-  if(!topic){ toast('Enter a topic first','âš ï¸'); return; }
+  if(!topic){ toast('Enter a topic first','!'); return; }
   const btn=document.getElementById('genBtn');
   const status=document.getElementById('status');
   const output=document.getElementById('output');
   const provider=getActiveProvider();
   btn.disabled=true;
   output.innerHTML='';
-  status.innerHTML=`<span class="progress-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>&nbsp; Generating <strong>${topic}</strong> roadmap with ${provider.name}â€¦`;
+  status.innerHTML=`<span class="progress-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>&nbsp; Generating <strong>${topic}</strong> roadmap with ${provider.name}...`;
   try{
     const result=await window.AIProviderKit.requestRoadmap(topic, STATE);
     STATE.aiUsage=STATE.aiUsage||{calls:0,tokens:0};
@@ -794,12 +907,13 @@ async function generateRoadmap(){
     const usageTokens=result.usage?.total_tokens ?? ((result.usage?.input_tokens||0)+(result.usage?.output_tokens||0));
     STATE.aiUsage.tokens+=usageTokens||0;
     if(result.mode==='prompt'){
-      status.innerHTML=`<span style="color:var(--done)">âœ“ Prompt prepared for <strong>${topic}</strong></span>`;
+      status.innerHTML=`<span style="color:var(--done)">Prompt prepared for <strong>${topic}</strong></span>`;
       output.innerHTML=window.AIProviderKit.renderPromptOnlyResult(result,topic);
     }else{
-      status.innerHTML=`<span style="color:var(--done)">âœ“ Roadmap generated for <strong>${topic}</strong></span>`;
+      status.innerHTML=`<span style="color:var(--done)">Roadmap generated for <strong>${topic}</strong></span>`;
       output.innerHTML=renderGenRoadmap(result.data,topic);
     }
+    normalizeVisibleText(output);
     addToHistory(topic);
     scheduleSave();
   }catch(err){
@@ -816,11 +930,11 @@ function toggleTheme(){
   const isDark=!document.documentElement.dataset.theme;
   document.documentElement.dataset.theme=isDark?'light':'';
   localStorage.setItem('theme',isDark?'light':'dark');
-  document.getElementById('hdr').querySelector('.ic-btn').textContent=isDark?'ðŸŒ™':'â˜€';
+  document.getElementById('hdr').querySelector('.ic-btn').textContent=isDark?'D':'L';
 }
 
 /* â”€â”€ TOAST â”€â”€ */
-function toast(msg,icon='â„¹ï¸'){
+function toast(msg,icon='i'){
   const el=document.createElement('div');
   el.className='toast';
   el.innerHTML=`<span>${icon}</span><span>${msg}</span>`;
@@ -895,16 +1009,16 @@ function exportProgress(){
   const done=Object.keys(STATE.progress);
   const total=document.querySelectorAll('.topic-card[data-topic]').length;
   const lines=[
-    '# DevRoadmap Pro â€” Progress Export',
+    '# DevRoadmap Pro - Progress Export',
     `Generated: ${new Date().toLocaleString()}`,
     `Overall: ${done.length}/${total} topics (${Math.round(done.length/total*100)}%)`,
     `XP: ${STATE.xp||0} | Streak: ${STATE.streak||0} days`,
     '',
     '## Completed Topics',
-    ...done.map(k=>`- [âœ“] ${k.replace(':',' â†’ ')}`),
+    ...done.map(k=>`- [x] ${k.replace(':',' -> ')}`),
     '',
     '## Notes',
-    ...Object.entries(STATE.notes||{}).map(([k,v])=>`### ${k.replace(':',' â†’ ')}\n${v}`),
+    ...Object.entries(STATE.notes||{}).map(([k,v])=>`### ${k.replace(':',' -> ')}\n${v}`),
   ];
   const blob=new Blob([lines.join('\n')],{type:'text/plain'});
   const a=document.createElement('a');
@@ -912,7 +1026,7 @@ function exportProgress(){
   a.download=`devroadmap-export-${new Date().toISOString().slice(0,10)}.md`;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('Exported as Markdown âœ“','â¬‡ï¸');
+  toast('Exported as Markdown','Export');
 }
 
 /* â”€â”€ SAVE DEBOUNCE (increased to avoid hammering Firestore on every keypress in notes) â”€â”€ */
@@ -933,9 +1047,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   ensureAIState();
   // Restore theme
   const savedTheme=localStorage.getItem('theme');
-  if(savedTheme==='light'){ document.documentElement.dataset.theme='light'; document.getElementById('hdr').querySelector('.ic-btn[onclick*=toggleTheme]').textContent='ðŸŒ™'; }
+  if(savedTheme==='light'){ document.documentElement.dataset.theme='light'; document.getElementById('hdr').querySelector('.ic-btn[onclick*=toggleTheme]').textContent='D'; }
 
   if(window.RoadmapExtensions){ window.RoadmapExtensions.apply(); }
+  normalizeVisibleText(document.body);
   renderAIProviderUI();
   enhanceTopicCards();
   buildSearchIndex();
@@ -959,7 +1074,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     else{
       if(!b){ b=document.createElement('div'); b.id='offlineBanner';
         b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:8999;background:rgba(245,166,35,.95);color:#000;text-align:center;padding:7px;font-size:.78rem;font-weight:600';
-        b.textContent='âš ï¸ You are offline â€” changes will sync when reconnected'; document.body.appendChild(b); }
+        b.textContent='You are offline - changes will sync when reconnected'; document.body.appendChild(b); }
     }
   }
   window.addEventListener('online',()=>{ setOnline(true); if(_currentUser) forceSyncNow(); });
@@ -994,7 +1109,7 @@ function showKeyboardHelp(){
   d.style.cssText='position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center';
   d.onclick=e=>{ if(e.target===d) d.remove(); };
   d.innerHTML=`<div style="background:var(--s1);border:1px solid var(--b1);border-radius:16px;padding:28px;min-width:300px;box-shadow:var(--sh-lg)">
-    <div style="font-family:var(--font-d);font-size:1rem;font-weight:800;margin-bottom:16px">âŒ¨ï¸ Keyboard Shortcuts</div>
+    <div style="font-family:var(--font-d);font-size:1rem;font-weight:800;margin-bottom:16px">Keyboard Shortcuts</div>
     ${[['/',  'Global search'],['Esc','Close modals'],['T','Toggle dark/light'],['?','Show this help']].map(([k,v])=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--b1);font-size:.82rem">
       <span style="color:var(--t2)">${v}</span>

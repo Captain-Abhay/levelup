@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DevRoadmap Pro</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%234da6ff'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='28' font-weight='700' fill='white'%3EDR%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
@@ -145,34 +146,34 @@ firebase deploy</div>
 
 <!-- HEADER -->
 <header id="hdr">
-  <div class="logo"><div class="logo-icon">ðŸ—º</div>DevRoadmap<span style="color:var(--ai);font-size:.65rem;margin-left:1px">Pro</span></div>
+  <div class="logo"><div class="logo-icon">DR</div>DevRoadmap<span style="color:var(--ai);font-size:.65rem;margin-left:1px">Pro</span></div>
   <div class="hdr-mid">
     <div class="hdr-search" onclick="openSearch()">
       <svg width="12" height="12" fill="none" viewBox="0 0 24 24" opacity=".4"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input placeholder="Search topicsâ€¦ ( / )" readonly>
+      <input placeholder="Search topics... ( / )" readonly>
     </div>
   </div>
   <div class="hdr-right">
     <div class="sync-dot-wrap sync-off" id="syncPill"><div class="sync-dot"></div><span id="syncLabel">Local</span></div>
-    <div class="xp-pill" id="xpPill" onclick="scrollToSidebar()" title="Your XP">â­ <span id="hdrXP">0</span> Â· <span id="hdrLevel">Lv.1</span></div>
-    <button class="ic-btn" onclick="toggleTheme()" title="Toggle theme">â˜€</button>
-    <button class="ic-btn" onclick="document.getElementById('hostingModal').classList.add('open')" title="Hosting guide">ðŸš€</button>
-    <button class="ic-btn" onclick="openUsageModal()" title="AI usage stats">ðŸ“Š</button>
-    <button class="ic-btn" onclick="showKeyboardHelp()" title="Keyboard shortcuts (?)">âŒ¨ï¸</button>
+    <div class="xp-pill" id="xpPill" onclick="scrollToSidebar()" title="Your XP">XP <span id="hdrXP">0</span> | <span id="hdrLevel">Lv.1</span></div>
+    <button class="ic-btn" onclick="toggleTheme()" title="Toggle theme">L</button>
+    <button class="ic-btn" onclick="document.getElementById('hostingModal').classList.add('open')" title="Hosting guide">H</button>
+    <button class="ic-btn" onclick="openUsageModal()" title="AI usage stats">U</button>
+    <button class="ic-btn" onclick="showKeyboardHelp()" title="Keyboard shortcuts (?)">?</button>
     <div class="user-menu-wrap" id="userMenuWrap" style="display:none">
       <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()">?</div>
       <div class="user-menu" id="userMenu">
-        <div class="um-info"><div class="um-name" id="umName">Guest</div><div class="um-email" id="umEmail">â€“</div></div>
-        <div class="um-item" onclick="openApiSetup();closeUserMenu()">ðŸ”‘ API Key Settings</div>
-        <div class="um-item" onclick="openUsageModal();closeUserMenu()">ðŸ“Š AI Usage</div>
-        <div class="um-item" onclick="document.getElementById('hostingModal').classList.add('open');closeUserMenu()">ðŸš€ Hosting Guide</div>
-        <div class="um-item" onclick="forceSyncNow()">â˜ï¸ Sync Now</div>
-        <div class="um-item" onclick="exportProgress();closeUserMenu()">â¬‡ï¸ Export Progress</div>
-        <div class="um-item" onclick="exportBackup();closeUserMenu()">ðŸ’¾ Export Backup</div>
-        <div class="um-item" onclick="triggerImportBackup();closeUserMenu()">ðŸ“¥ Import Backup</div>
-        <div class="um-item" onclick="showKeyboardHelp();closeUserMenu()">âŒ¨ï¸ Shortcuts</div>
+        <div class="um-info"><div class="um-name" id="umName">Guest</div><div class="um-email" id="umEmail">-</div></div>
+        <div class="um-item" onclick="openApiSetup();closeUserMenu()">API Key Settings</div>
+        <div class="um-item" onclick="openUsageModal();closeUserMenu()">AI Usage</div>
+        <div class="um-item" onclick="document.getElementById('hostingModal').classList.add('open');closeUserMenu()">Hosting Guide</div>
+        <div class="um-item" onclick="forceSyncNow()">Sync Now</div>
+        <div class="um-item" onclick="exportProgress();closeUserMenu()">Export Progress</div>
+        <div class="um-item" onclick="exportBackup();closeUserMenu()">Export Backup</div>
+        <div class="um-item" onclick="triggerImportBackup();closeUserMenu()">Import Backup</div>
+        <div class="um-item" onclick="showKeyboardHelp();closeUserMenu()">Shortcuts</div>
         <div class="um-sep"></div>
-        <div class="um-item um-danger" onclick="confirmSignOut()">â†© Sign Out</div>
+        <div class="um-item um-danger" onclick="confirmSignOut()">Sign Out</div>
       </div>
     </div>
   </div>
@@ -180,10 +181,10 @@ firebase deploy</div>
 
 <!-- TAB BAR -->
 <div id="tabBar">
-  <button class="tab active" onclick="switchTrack('dsa',this)">ðŸŽ¯ DSA & Algorithms</button>
-  <button class="tab" onclick="switchTrack('webdev',this)">ðŸŒ Web Development</button>
-  <button class="tab" onclick="switchTrack('ai',this)">ðŸ¤– AI / ML</button>
-  <button class="tab gen-tab" onclick="switchTrack('generator',this)">âœ¦ Generate Any Roadmap</button>
+  <button class="tab active" onclick="switchTrack('dsa',this)">DSA & Algorithms</button>
+  <button class="tab" onclick="switchTrack('webdev',this)">Web Development</button>
+  <button class="tab" onclick="switchTrack('ai',this)">AI / ML</button>
+  <button class="tab gen-tab" onclick="switchTrack('generator',this)">Generate Any Roadmap</button>
 </div>
 
 <!-- APP CONTENT -->
@@ -1014,12 +1015,12 @@ firebase deploy</div>
       <!-- GENERATOR TRACK -->
       <div id="generator" class="track">
         <div class="gen-hero">
-          <div class="gen-title">âœ¦ Generate Any Roadmap</div>
-          <div class="gen-sub">Type any tech topic and generate a detailed learning roadmap with Anthropic, OpenAI, Gemini, OpenRouter, or free prompt mode â€” phases, docs, videos, practice links, projects, and certificates.<br><span id="genKeyStatus" style="color:var(--ai)">Choose a provider below or use Prompt Mode if you want a free copy-paste workflow.</span></div>
+          <div class="gen-title">Generate Any Roadmap</div>
+          <div class="gen-sub">Type any tech topic and generate a detailed learning roadmap with Anthropic, OpenAI, Gemini, OpenRouter, or free prompt mode - phases, docs, videos, practice links, projects, and certificates.<br><span id="genKeyStatus" style="color:var(--ai)">Choose a provider below or use Prompt Mode if you want a free copy-paste workflow.</span></div>
           <div id="generatorProviderMount"></div>
           <div class="input-row">
             <input class="topic-input" id="topicInput" placeholder="e.g. DevOps, Cybersecurity, Mobile Dev, Blockchain, Game Dev..." onkeydown="if(event.key==='Enter')generateRoadmap()">
-            <button class="gen-btn" id="genBtn" onclick="generateRoadmap()">Generate â†—</button>
+            <button class="gen-btn" id="genBtn" onclick="generateRoadmap()">Generate -></button>
           </div>
           <div class="chips">
             <div class="chip" onclick="quickGen('DevOps')">DevOps</div>
