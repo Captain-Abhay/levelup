@@ -948,11 +948,16 @@
   function refreshRoadmapSummary(){
     const dsa = document.getElementById('dsa');
     if(dsa){
-      const practiceLinks = dsa.querySelectorAll('.link-pill.lc, .link-pill.hr').length;
+      const leetcodeLinks = Array.from(dsa.querySelectorAll('.link-pill.lc[href*="/problems/"]'))
+        .map(function(linkEl){ return linkEl.getAttribute('href'); })
+        .filter(Boolean);
+      const uniqueLeetcodeProblems = new Set(leetcodeLinks).size;
+      const hackerRankTracks = dsa.querySelectorAll('.link-pill.hr').length;
       const topics = dsa.querySelectorAll('.topic-card[data-track=\"dsa\"]').length;
       const text = dsa.querySelector('.intro-text');
       if(text){
-        text.innerHTML = practiceLinks + '+ curated practice links across ' + topics + ' DSA topics with beginner, medium, and advanced pattern coverage. <span class=\"badge-faang\">FAANG Must</span> marks patterns that come up repeatedly in top-company screens.';
+        const extraText = hackerRankTracks > 0 ? (' plus ' + hackerRankTracks + ' HackerRank practice tracks') : '';
+        text.innerHTML = uniqueLeetcodeProblems + '+ unique LeetCode problems' + extraText + ' across ' + topics + ' DSA topics. <span class=\"badge-faang\">FAANG Must</span> marks patterns that come up repeatedly in top-company screens.';
       }
     }
 

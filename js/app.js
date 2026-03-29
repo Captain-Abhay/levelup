@@ -187,6 +187,41 @@ function normalizeVisibleText(root=document.body){
   });
 }
 
+function repairStaticUIText(){
+  const setText = (selector, value) => {
+    const el = document.querySelector(selector);
+    if(el) el.textContent = value;
+  };
+  const setHtml = (selector, value) => {
+    const el = document.querySelector(selector);
+    if(el) el.innerHTML = value;
+  };
+
+  setText('#authOverlay .auth-logo', 'DR');
+  setText('#authOverlay .auth-btn.demo', 'Try without account');
+  setText('#apiSetupScreen .api-setup-title', 'Connect an AI Provider');
+  setText('#apiSetupScreen .api-setup-sub', 'AI features like Mentor, Goal Generator, and Roadmap Builder work with Anthropic, OpenAI, Gemini, OpenRouter, or Prompt Mode.');
+  setText('#apiSetupScreen .ak-vis-btn', 'Show');
+  setText('#apiSetupScreen [style*="font-size:2rem"]', 'AI');
+  setText('#hostingModal .hosting-hdr span', 'Host');
+  setText('.goal-edit', 'Change goal ->');
+  setHtml('.streak-info', 'day streak<br><span id="streakMsg" style="color:var(--t4);font-size:.65rem"></span>');
+
+  const authFeatures = document.querySelectorAll('#authOverlay .af-item');
+  if(authFeatures[0]) authFeatures[0].innerHTML = '<span>Sync</span> Progress synced across all your devices';
+  if(authFeatures[1]) authFeatures[1].innerHTML = '<span>Keys</span> Save one or more AI provider keys securely';
+  if(authFeatures[2]) authFeatures[2].innerHTML = '<span>AI</span> AI roadmap builder with multi-provider support';
+  if(authFeatures[3]) authFeatures[3].innerHTML = '<span>XP</span> XP, streaks, and activity heatmap';
+
+  const akSteps = document.querySelectorAll('#apiSetupScreen .ak-step span:last-child');
+  if(akSteps[0]) akSteps[0].innerHTML = 'Go to <a href="https://console.anthropic.com/account/keys" target="_blank" style="color:var(--ai)">console.anthropic.com</a> -&gt; Create Key';
+  if(akSteps[1]) akSteps[1].textContent = 'Free tier gives about $5 credit, which is roughly 500 responses';
+  if(akSteps[2]) akSteps[2].textContent = 'Paste it below. It is stored in your Firebase profile.';
+
+  const introTitle = document.querySelector('#dsa .intro-title');
+  if(introTitle) introTitle.textContent = 'DSA Roadmap - Beginner to FAANG/OpenAI Level';
+}
+
 function cacheDOM(){
   DOM.themeToggle = document.getElementById('themeToggleBtn');
   DOM.hdrXP = document.getElementById('hdrXP');
@@ -1594,6 +1629,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   upgradeLegacyMarkup();
   assignTopicIds();
   migrateStateKeys();
+  repairStaticUIText();
   normalizeVisibleText(document.body);
   requestAnimationFrame(()=>normalizeVisibleText(document.body));
   renderAIProviderUI();
@@ -1650,6 +1686,7 @@ window.addEventListener('unhandledrejection',(event)=>{
 });
 
 window.addEventListener('load',()=>{
+  repairStaticUIText();
   normalizeVisibleText(document.body);
 });
 
