@@ -60,6 +60,16 @@
       introText: 'Expanded to cover classical ML, deep learning systems, LLM evaluation, retrieval, serving, research habits, and the modern model ecosystem.',
       phases: [],
       optionsPanel: ''
+    },
+    mlops: {
+      introTitle: 'MLOps Roadmap - Training pipelines, deployment, monitoring, and ML platform engineering',
+      introText: 'A practical path from reproducible experimentation to production-grade model serving, observability, governance, and platform ownership.',
+      phases: []
+    },
+    dba: {
+      introTitle: 'DBA and Data Platform Roadmap - Reliability, tuning, automation, and cloud-era database ownership',
+      introText: 'Built for the future of DBA work: core administration, SQL performance, HA/DR, cloud databases, security, automation, and data platform skills.',
+      phases: []
     }
   };
 
@@ -558,6 +568,284 @@
       '</div>' +
     '</div>';
 
+  ROADMAP_EXTENSIONS.mlops.phases.push(
+    {
+      title: 'Software, Data, and Linux Foundations for MLOps',
+      duration: '3-4 weeks',
+      topics: [
+        topic('Python for Production ML', ['must'], 'Go beyond notebooks: environments, packaging, typing, testing, and CLI workflows matter in real ML teams.', [
+          link('doc', 'Real Python Learning Paths', 'https://realpython.com/'),
+          link('doc', 'Python Packaging User Guide', 'https://packaging.python.org/'),
+          link('doc', 'pytest Docs', 'https://docs.pytest.org/')
+        ]),
+        topic('Git, CI Basics, and Collaboration', ['must'], 'MLOps work depends on version control hygiene, code review discipline, and repeatable automation.', [
+          link('doc', 'GitHub Actions Docs', 'https://docs.github.com/actions'),
+          link('doc', 'Atlassian Git Tutorials', 'https://www.atlassian.com/git/tutorials'),
+          link('yt', 'YT: Git and GitHub Crash Course', 'https://www.youtube.com/watch?v=RGOj5yH7evk')
+        ]),
+        topic('Linux, Shell, and Networking for ML Engineers', ['high'], 'You should be comfortable debugging containers, ports, processes, and file systems on servers.', [
+          link('doc', 'The Linux Command Line - Free Book', 'https://linuxcommand.org/tlcl.php'),
+          link('doc', 'DigitalOcean Linux Tutorials', 'https://www.digitalocean.com/community/tutorials'),
+          link('yt', 'YT: Linux for Developers', 'https://www.youtube.com/watch?v=sWbUDq4S6Y8')
+        ]),
+        topic('SQL, Warehousing, and Data Contracts', ['high'], 'MLOps is easier when you can reason about data lineage, table health, joins, freshness, and schema changes.', [
+          link('doc', 'Mode SQL Tutorial', 'https://mode.com/sql-tutorial/'),
+          link('doc', 'dbt Fundamentals', 'https://learn.getdbt.com/'),
+          link('doc', 'Great Expectations Docs', 'https://docs.greatexpectations.io/')
+        ])
+      ],
+      projects: [
+        project('Reusable ML Service Skeleton', 'Create a repo with Python packaging, linting, tests, configuration files, and CI for a simple model inference service.', ['Python', 'pytest', 'GitHub Actions']),
+        project('Data Validation Starter', 'Build a small pipeline that checks schema, null ratios, and freshness before a model training step runs.', ['SQL', 'Python', 'Great Expectations'])
+      ],
+      certificates: [
+        cert('MLOps Zoomcamp', 'DataTalksClub - Free', 'https://github.com/DataTalksClub/mlops-zoomcamp'),
+        cert('Introduction to GitHub Actions', 'GitHub Skills - Free', 'https://skills.github.com/')
+      ]
+    },
+    {
+      title: 'Experiment Tracking, Pipelines, and Reproducibility',
+      duration: '4 weeks',
+      topics: [
+        topic('Experiment Tracking and Metadata', ['faang', 'must'], 'Every serious ML team needs lineage: dataset version, code version, parameters, metrics, and artifacts.', [
+          link('doc', 'MLflow Docs', 'https://mlflow.org/docs/latest/index.html'),
+          link('doc', 'Weights and Biases Docs', 'https://docs.wandb.ai/'),
+          link('doc', 'Neptune Docs', 'https://docs-legacy.neptune.ai/')
+        ]),
+        topic('Data and Model Versioning', ['must'], 'Reproducibility breaks fast without versioned training data, configs, and model artifacts.', [
+          link('doc', 'DVC Docs', 'https://dvc.org/doc'),
+          link('doc', 'LakeFS Docs', 'https://docs.lakefs.io/'),
+          link('doc', 'Git LFS Docs', 'https://git-lfs.com/')
+        ]),
+        topic('Workflow Orchestration for Training Jobs', ['high'], 'Learn how scheduled and dependency-aware training pipelines work from raw data to validated model.', [
+          link('doc', 'Prefect Docs', 'https://docs.prefect.io/'),
+          link('doc', 'Airflow Docs', 'https://airflow.apache.org/docs/'),
+          link('doc', 'Dagster Docs', 'https://docs.dagster.io/')
+        ]),
+        topic('Configuration, Feature Pipelines, and Repeatability', ['high'], 'Treat configuration as code and make training runs composable across environments.', [
+          link('doc', 'Hydra Docs', 'https://hydra.cc/docs/intro/'),
+          link('doc', 'OmegaConf Docs', 'https://omegaconf.readthedocs.io/'),
+          link('doc', 'Feast Docs', 'https://docs.feast.dev/')
+        ])
+      ],
+      projects: [
+        project('Tracked Training Pipeline', 'Train a model with MLflow or W&B, version data with DVC, and orchestrate runs through Prefect or Dagster.', ['MLflow', 'DVC', 'Prefect']),
+        project('Feature Pipeline Demo', 'Create offline feature generation plus a simple online-serving mock so you understand freshness and point-in-time correctness.', ['Python', 'SQL', 'Feast'])
+      ],
+      certificates: [
+        cert('MLOps Specialization', 'Duke University / Coursera - Audit free', 'https://www.coursera.org/specializations/mlops-machine-learning-duke'),
+        cert('Dagster University', 'Dagster - Free', 'https://courses.dagster.io/')
+      ]
+    },
+    {
+      title: 'Model Serving, Containers, and Deployment',
+      duration: '4 weeks',
+      topics: [
+        topic('API Serving for Models', ['faang', 'must'], 'Start with simple, observable HTTP inference before jumping to large distributed serving stacks.', [
+          link('doc', 'FastAPI Docs', 'https://fastapi.tiangolo.com/'),
+          link('doc', 'BentoML Docs', 'https://docs.bentoml.com/'),
+          link('doc', 'KServe Docs', 'https://kserve.github.io/website/')
+        ]),
+        topic('Docker and Container Build Hygiene', ['must'], 'Slim images, reproducible builds, secrets handling, and startup health checks are core deployment skills.', [
+          link('doc', 'Docker Docs', 'https://docs.docker.com/'),
+          link('doc', 'Docker Best Practices', 'https://docs.docker.com/develop/dev-best-practices/'),
+          link('yt', 'YT: Docker for Beginners', 'https://www.youtube.com/watch?v=pg19Z8LL06w')
+        ]),
+        topic('Kubernetes and Inference Workloads', ['high'], 'You do not need to become a cluster wizard first, but you should understand pods, deployments, autoscaling, and rollout basics.', [
+          link('doc', 'Kubernetes Basics', 'https://kubernetes.io/docs/tutorials/kubernetes-basics/'),
+          link('doc', 'Argo Workflows Docs', 'https://argo-workflows.readthedocs.io/'),
+          link('doc', 'Kubeflow Docs', 'https://www.kubeflow.org/docs/')
+        ]),
+        topic('Batch, Streaming, and Real-time Inference Patterns', ['high'], 'Pick the right serving mode based on latency budgets, throughput, retraining cadence, and cost.', [
+          link('doc', 'Ray Serve Docs', 'https://docs.ray.io/en/latest/serve/'),
+          link('doc', 'Kafka Concepts', 'https://kafka.apache.org/documentation/'),
+          link('doc', 'AWS SageMaker Hosting Overview', 'https://docs.aws.amazon.com/sagemaker/latest/dg/hosting-faqs.html')
+        ])
+      ],
+      projects: [
+        project('Containerized Inference Service', 'Package a model with FastAPI or BentoML, add health checks and logging, and deploy it locally with Docker Compose.', ['FastAPI', 'Docker', 'REST']),
+        project('Blue-Green Model Rollout Demo', 'Simulate a canary or blue-green rollout where one model version gradually replaces another while latency and quality are compared.', ['Kubernetes', 'Metrics', 'Deployment'])
+      ],
+      certificates: [
+        cert('Docker Essentials', 'IBM / Coursera - Audit free', 'https://www.coursera.org/learn/docker-essentials'),
+        cert('Introduction to Kubernetes', 'The Linux Foundation - Free', 'https://training.linuxfoundation.org/training/introduction-to-kubernetes/')
+      ]
+    },
+    {
+      title: 'Monitoring, Governance, and ML Platform Engineering',
+      duration: 'Ongoing',
+      topics: [
+        topic('Model Monitoring and Data Drift', ['faang', 'must'], 'Production ML fails quietly without monitoring for feature drift, prediction quality, latency, and business KPIs.', [
+          link('doc', 'Evidently Docs', 'https://docs.evidentlyai.com/'),
+          link('doc', 'WhyLabs Docs', 'https://docs.whylabs.ai/'),
+          link('doc', 'Prometheus Docs', 'https://prometheus.io/docs/introduction/overview/')
+        ]),
+        topic('Observability, Alerting, and Incident Response', ['high'], 'Logs alone are not enough. Learn dashboards, traces, SLOs, and practical on-call debugging.', [
+          link('doc', 'Grafana Docs', 'https://grafana.com/docs/'),
+          link('doc', 'OpenTelemetry Docs', 'https://opentelemetry.io/docs/'),
+          link('doc', 'SRE Workbook', 'https://sre.google/workbook/table-of-contents/')
+        ]),
+        topic('Security, Governance, and Responsible Release Processes', ['high'], 'Access control, secrets, audit trails, approval gates, and compliance matter more as ML systems touch critical workflows.', [
+          link('doc', 'OWASP MLOps Top 10', 'https://owasp.org/www-project-machine-learning-security-top-10/'),
+          link('doc', 'NIST AI RMF', 'https://www.nist.gov/itl/ai-risk-management-framework'),
+          link('doc', 'Google Cloud ML governance overview', 'https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning')
+        ]),
+        topic('Platform Thinking and Internal Tooling', ['advanced'], 'The best MLOps engineers reduce repeated work with templates, guardrails, and paved-road workflows.', [
+          link('doc', 'Backstage Docs', 'https://backstage.io/docs/'),
+          link('doc', 'Terraform Docs', 'https://developer.hashicorp.com/terraform/docs'),
+          link('doc', 'Pulumi Docs', 'https://www.pulumi.com/docs/')
+        ])
+      ],
+      projects: [
+        project('ML Reliability Dashboard', 'Create dashboards for drift, service health, inference latency, and retraining triggers for one deployed model.', ['Grafana', 'Prometheus', 'Evidently']),
+        project('Golden Path ML Template', 'Build an internal starter template that gives teams repo structure, CI, Docker, experiment tracking, deployment, and monitoring out of the box.', ['Terraform', 'GitHub Actions', 'Platform Engineering'])
+      ],
+      certificates: [
+        cert('Google Cloud MLOps Fundamentals', 'Google Cloud Skills Boost - Free modules available', 'https://www.cloudskillsboost.google/paths'),
+        cert('Practical MLOps', 'O\'Reilly companion material / book study', 'https://www.oreilly.com/library/view/practical-mlops/9781098103002/')
+      ]
+    }
+  );
+
+  ROADMAP_EXTENSIONS.dba.phases.push(
+    {
+      title: 'SQL, RDBMS Core, and Linux for Database Work',
+      duration: '3-4 weeks',
+      topics: [
+        topic('Advanced SQL for Production Systems', ['faang', 'must'], 'Go past CRUD: joins, CTEs, windows, execution order, concurrency impact, and query readability all matter.', [
+          link('doc', 'PostgreSQL Tutorial', 'https://www.postgresqltutorial.com/'),
+          link('doc', 'Mode SQL Tutorial', 'https://mode.com/sql-tutorial/'),
+          link('doc', 'SQLBolt', 'https://sqlbolt.com/')
+        ]),
+        topic('Database Internals Basics', ['must'], 'Learn pages, indexes, vacuuming, MVCC, transactions, WAL, locks, and checkpointing at a high level.', [
+          link('doc', 'PostgreSQL Internals Overview', 'https://www.postgresql.org/docs/current/storage.html'),
+          link('doc', 'Use The Index, Luke', 'https://use-the-index-luke.com/'),
+          link('doc', 'High Performance SQLite', 'https://highperformancesqlite.com/')
+        ]),
+        topic('Linux Administration for DBAs', ['high'], 'A modern DBA needs confidence with processes, disks, permissions, memory pressure, systemd, and networking basics.', [
+          link('doc', 'The Linux Command Line - Free Book', 'https://linuxcommand.org/tlcl.php'),
+          link('doc', 'Red Hat Linux Basics', 'https://www.redhat.com/en/blog/category/linux'),
+          link('yt', 'YT: Linux Crash Course', 'https://www.youtube.com/watch?v=IVquJh3DXUA')
+        ]),
+        topic('Shell Scripting and Automation', ['high'], 'The future-proof DBA automates backups, checks, reports, maintenance windows, and recovery drills.', [
+          link('doc', 'GNU Bash Manual', 'https://www.gnu.org/software/bash/manual/bash.html'),
+          link('doc', 'PowerShell Docs', 'https://learn.microsoft.com/powershell/'),
+          link('doc', 'Ansible Docs', 'https://docs.ansible.com/')
+        ])
+      ],
+      projects: [
+        project('SQL Performance Workbook', 'Create a repo of query tuning before/after examples using joins, windows, indexes, and explain plans.', ['SQL', 'PostgreSQL', 'Benchmarking']),
+        project('DBA Automation Scripts', 'Write scripts for user creation, backup verification, space checks, slow query reporting, and maintenance reminders.', ['Bash', 'PowerShell', 'Scheduling'])
+      ],
+      certificates: [
+        cert('Relational Database Certification', 'freeCodeCamp - Free', 'https://www.freecodecamp.org/learn/relational-database/'),
+        cert('PostgreSQL Exercises', 'PostgreSQL Exercises - Free', 'https://pgexercises.com/')
+      ]
+    },
+    {
+      title: 'Backup, Recovery, Replication, and High Availability',
+      duration: '4 weeks',
+      topics: [
+        topic('Backup Strategies and Recovery Validation', ['faang', 'must'], 'Backups are only useful if you can restore them under pressure and prove RPO/RTO expectations.', [
+          link('doc', 'pgBackRest Docs', 'https://pgbackrest.org/'),
+          link('doc', 'PostgreSQL Backup and Restore', 'https://www.postgresql.org/docs/current/backup.html'),
+          link('doc', 'Percona Backup Guides', 'https://docs.percona.com/')
+        ]),
+        topic('Replication, Failover, and HA Topologies', ['must'], 'Understand async vs sync replication, read replicas, failover orchestration, and split-brain risk.', [
+          link('doc', 'PostgreSQL Replication', 'https://www.postgresql.org/docs/current/high-availability.html'),
+          link('doc', 'MySQL Replication', 'https://dev.mysql.com/doc/refman/8.0/en/replication.html'),
+          link('doc', 'Patroni Docs', 'https://patroni.readthedocs.io/')
+        ]),
+        topic('Disaster Recovery Runbooks', ['high'], 'Strong DBAs write and rehearse runbooks, not just architecture diagrams.', [
+          link('doc', 'AWS Disaster Recovery Whitepaper', 'https://docs.aws.amazon.com/whitepapers/latest/disaster-recovery-workloads-on-aws/disaster-recovery-of-on-premises-applications-to-aws.html'),
+          link('doc', 'Google SRE Workbook', 'https://sre.google/workbook/table-of-contents/'),
+          link('doc', 'Azure Business Continuity Docs', 'https://learn.microsoft.com/azure/architecture/framework/resiliency/')
+        ]),
+        topic('Capacity Planning and Storage Strategy', ['high'], 'Think in growth curves, IOPS, retention, indexing cost, maintenance windows, and archive policies.', [
+          link('doc', 'AWS Well-Architected Performance Efficiency', 'https://docs.aws.amazon.com/wellarchitected/latest/performance-efficiency-pillar/welcome.html'),
+          link('doc', 'Azure SQL performance guidance', 'https://learn.microsoft.com/azure/azure-sql/database/performance-guidance'),
+          link('doc', 'Google Cloud SQL docs', 'https://cloud.google.com/sql/docs')
+        ])
+      ],
+      projects: [
+        project('Disaster Recovery Drill Lab', 'Set up a primary plus replica database, take backups, simulate failure, and restore to a target point in time.', ['PostgreSQL', 'Replication', 'Recovery']),
+        project('HA Architecture Playbook', 'Document tradeoffs for read replicas, failover managers, connection pooling, and backup schedules for a growing app.', ['Architecture', 'Runbooks', 'Operations'])
+      ],
+      certificates: [
+        cert('PostgreSQL Administration', 'EDB / Community resources', 'https://www.enterprisedb.com/training'),
+        cert('AWS Database Offerings Overview', 'AWS Skill Builder - Free modules', 'https://explore.skillbuilder.aws/learn')
+      ]
+    },
+    {
+      title: 'Performance Tuning, Security, and Observability',
+      duration: '4 weeks',
+      topics: [
+        topic('Execution Plans and Query Tuning', ['faang', 'must'], 'You should be able to read explain plans, identify bad joins, missing indexes, scan blowups, and cardinality surprises.', [
+          link('doc', 'EXPLAIN in PostgreSQL', 'https://www.postgresql.org/docs/current/using-explain.html'),
+          link('doc', 'Use The Index, Luke - SQL tuning', 'https://use-the-index-luke.com/sql/explain-plan'),
+          link('doc', 'MySQL EXPLAIN Docs', 'https://dev.mysql.com/doc/refman/8.0/en/explain.html')
+        ]),
+        topic('Index Design and Table Maintenance', ['must'], 'Choose indexes based on workload, write amplification, bloat, vacuum cost, and access patterns.', [
+          link('doc', 'PostgreSQL Indexes', 'https://www.postgresql.org/docs/current/indexes.html'),
+          link('doc', 'pg_stat_statements Docs', 'https://www.postgresql.org/docs/current/pgstatstatements.html'),
+          link('doc', 'Percona Monitoring Tools', 'https://www.percona.com/software/database-tools/percona-monitoring-and-management')
+        ]),
+        topic('Database Security and Compliance Basics', ['high'], 'Roles, least privilege, encryption, secret rotation, audit logs, and compliance boundaries are core future DBA skills.', [
+          link('doc', 'OWASP Database Security Cheat Sheet', 'https://cheatsheetseries.owasp.org/cheatsheets/Database_Security_Cheat_Sheet.html'),
+          link('doc', 'PostgreSQL Client Authentication', 'https://www.postgresql.org/docs/current/client-authentication.html'),
+          link('doc', 'HashiCorp Vault Docs', 'https://developer.hashicorp.com/vault/docs')
+        ]),
+        topic('Metrics, Logs, and Slow Query Observability', ['high'], 'Modern DBAs operate with dashboards, alert thresholds, and trend analysis instead of reactive firefighting alone.', [
+          link('doc', 'Prometheus Docs', 'https://prometheus.io/docs/introduction/overview/'),
+          link('doc', 'Grafana Docs', 'https://grafana.com/docs/'),
+          link('doc', 'pgwatch Docs', 'https://github.com/cybertec-postgresql/pgwatch')
+        ])
+      ],
+      projects: [
+        project('Slow Query Tuning Dashboard', 'Collect slow queries, build explain-plan notes, and track p95 latency improvements after indexing and rewrites.', ['PostgreSQL', 'Grafana', 'Monitoring']),
+        project('Security Hardening Checklist', 'Create a reusable hardening checklist for users, roles, network access, TLS, backup encryption, and audit readiness.', ['Security', 'Operations', 'Documentation'])
+      ],
+      certificates: [
+        cert('Database Management Essentials', 'University of Colorado / Coursera - Audit free', 'https://www.coursera.org/learn/database-management'),
+        cert('Monitoring and Observability Fundamentals', 'Grafana Labs - Free learning paths', 'https://grafana.com/tutorials/')
+      ]
+    },
+    {
+      title: 'Cloud Databases, Automation, and Future-Proof DBA Skills',
+      duration: 'Ongoing',
+      topics: [
+        topic('Managed Cloud Databases and Platform Tradeoffs', ['faang', 'must'], 'Future DBAs increasingly own RDS, Cloud SQL, Azure SQL, Aurora, and managed cache/search choices.', [
+          link('doc', 'Amazon RDS Docs', 'https://docs.aws.amazon.com/rds/'),
+          link('doc', 'Azure SQL Docs', 'https://learn.microsoft.com/azure/azure-sql/'),
+          link('doc', 'Google Cloud SQL Docs', 'https://cloud.google.com/sql/docs')
+        ]),
+        topic('Infrastructure as Code for Database Operations', ['high'], 'Provisioning, parameter groups, users, alerts, and backups should be reproducible through code.', [
+          link('doc', 'Terraform AWS RDS resources', 'https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance'),
+          link('doc', 'Terraform Azure SQL resources', 'https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs'),
+          link('doc', 'Pulumi cloud database guides', 'https://www.pulumi.com/docs/')
+        ]),
+        topic('Data Platform Adjacency: Warehouses, Streams, and ETL', ['high'], 'The most resilient DBA career path includes enough warehouse, stream, and ingestion knowledge to partner with data engineering.', [
+          link('doc', 'Snowflake Docs', 'https://docs.snowflake.com/'),
+          link('doc', 'BigQuery Docs', 'https://cloud.google.com/bigquery/docs'),
+          link('doc', 'Kafka Docs', 'https://kafka.apache.org/documentation/')
+        ]),
+        topic('Career Growth: SRE, Platform DBA, and Data Reliability', ['advanced'], 'The strongest long-term path is not just “database admin” but database reliability engineer, platform engineer, or data infrastructure owner.', [
+          link('doc', 'Google SRE Book', 'https://sre.google/sre-book/table-of-contents/'),
+          link('doc', 'dbt Data Reliability concepts', 'https://docs.getdbt.com/docs/build/data-tests'),
+          link('doc', 'Data Engineering Zoomcamp', 'https://github.com/DataTalksClub/data-engineering-zoomcamp')
+        ])
+      ],
+      projects: [
+        project('Cloud Database Landing Zone', 'Provision a managed PostgreSQL instance with backups, alerts, parameter configuration, and secret management through Terraform.', ['AWS or Azure', 'Terraform', 'Security']),
+        project('Database Reliability Portfolio', 'Document incidents, performance fixes, HA decisions, and automation work in a portfolio that positions you for platform or SRE-adjacent roles.', ['Writing', 'Runbooks', 'Operations'])
+      ],
+      certificates: [
+        cert('AWS Cloud Practitioner Database Modules', 'AWS Skill Builder - Free modules', 'https://explore.skillbuilder.aws/learn'),
+        cert('Microsoft Learn - Azure Data and SQL paths', 'Microsoft Learn - Free', 'https://learn.microsoft.com/training/')
+      ]
+    }
+  );
+
   function renderBadges(badges){
     if(!badges || !badges.length) return '';
     return '<span class=\"badges\">' + badges.map(function(badge){
@@ -683,6 +971,24 @@
       const text = ai.querySelector('.intro-text');
       if(text){
         text.textContent = 'A more complete AI path with ' + topics + '+ curated topics spanning ML foundations, deep learning, LLM engineering, evaluation, safety, and provider ecosystem knowledge. It includes free learning options and production-focused tooling.';
+      }
+    }
+
+    const mlops = document.getElementById('mlops');
+    if(mlops){
+      const topics = mlops.querySelectorAll('.topic-card[data-track=\"mlops\"]').length;
+      const text = mlops.querySelector('.intro-text');
+      if(text){
+        text.textContent = 'A deployment-first MLOps path with ' + topics + '+ curated topics across experimentation, pipelines, serving, Kubernetes, monitoring, governance, and ML platform engineering.';
+      }
+    }
+
+    const dba = document.getElementById('dba');
+    if(dba){
+      const topics = dba.querySelectorAll('.topic-card[data-track=\"dba\"]').length;
+      const text = dba.querySelector('.intro-text');
+      if(text){
+        text.textContent = 'A future-proof DBA path with ' + topics + '+ curated topics covering SQL depth, internals, HA and DR, performance tuning, security, cloud databases, automation, and data platform growth.';
       }
     }
   }

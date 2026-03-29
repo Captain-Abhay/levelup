@@ -31,6 +31,13 @@ const APP_LOG_PREFIX='[DevRoadmap]';
 const DOM = {};
 const TOPIC_INDEX = new Map();
 const LEGACY_TOPIC_INDEX = new Map();
+const TRACK_LABELS = {
+  dsa: 'DSA',
+  webdev: 'Web Dev',
+  ai: 'AI / ML',
+  mlops: 'MLOps',
+  dba: 'DBA / Data Platforms'
+};
 
 function logInfo(message, extra){
   if(typeof extra==='undefined') console.info(APP_LOG_PREFIX, message);
@@ -866,9 +873,10 @@ function renderNextTopicPanel(){
     panel.innerHTML='<div class="helper-empty">You cleared every currently loaded topic. Nice work.</div>';
     return;
   }
+  const trackLabel = TRACK_LABELS[next.dataset.track] || next.dataset.track.toUpperCase();
   panel.innerHTML=`
     <div class="helper-title">${next.dataset.topic}</div>
-    <div class="helper-copy">Recommended next step from ${next.dataset.track.toUpperCase()} based on what is still incomplete.</div>
+    <div class="helper-copy">Recommended next step from ${trackLabel} based on what is still incomplete.</div>
     <div class="helper-link" onclick="goToTopic('${next.dataset.id}')">Open topic</div>
   `;
 }
@@ -883,9 +891,10 @@ function renderResumePanel(){
   }
   const topicMeta = getTopicMeta(last.id) || last;
   const visitedAt = last.ts ? new Date(last.ts).toLocaleString() : 'Recently visited';
+  const trackLabel = TRACK_LABELS[topicMeta.track] || topicMeta.track.toUpperCase();
   panel.innerHTML=`
     <div class="helper-title">${topicMeta.topic}</div>
-    <div class="helper-meta">${topicMeta.track.toUpperCase()} | ${visitedAt}</div>
+    <div class="helper-meta">${trackLabel} | ${visitedAt}</div>
     <div class="helper-link" onclick="goToTopic('${topicMeta.id}')">Resume</div>
   `;
 }
@@ -901,7 +910,8 @@ function renderBookmarksPanel(){
   panel.innerHTML=entries.map(key=>{
     const meta = getTopicMeta(key);
     if(!meta) return '';
-    return `<div class="helper-item"><div class="helper-title">${meta.topic}</div><div class="helper-meta">${meta.track.toUpperCase()}</div><div class="helper-link" onclick="goToTopic('${meta.id}')">Open</div></div>`;
+    const trackLabel = TRACK_LABELS[meta.track] || meta.track.toUpperCase();
+    return `<div class="helper-item"><div class="helper-title">${meta.topic}</div><div class="helper-meta">${trackLabel}</div><div class="helper-link" onclick="goToTopic('${meta.id}')">Open</div></div>`;
   }).join('');
 }
 
@@ -915,14 +925,13 @@ function renderSidebar(){
   if(DOM.statPct) DOM.statPct.textContent=Math.round(allKeys.length/totalTopics*100)+'%';
   if(DOM.statStreak) DOM.statStreak.textContent=(STATE.streak||0)+' days';
   // Track progress
-  const tracks=['dsa','webdev','ai'];
-  const trackNames={'dsa':'DSA','webdev':'Web Dev','ai':'AI / ML'};
+  const tracks=['dsa','webdev','ai','mlops','dba'];
   if(DOM.trackProgressList){
     DOM.trackProgressList.innerHTML=tracks.map(t=>{
     const done=document.querySelectorAll(`.topic-card[data-track="${t}"][data-id].done-card`).length;
     const total=document.querySelectorAll(`.topic-card[data-track="${t}"][data-id]`).length||1;
     const pct=Math.round(done/total*100);
-    return `<div class="track-prog"><div class="tp-row"><span class="tp-name">${trackNames[t]}</span><span class="tp-pct">${pct}%</span></div><div class="tp-bar"><div class="tp-fill" style="width:${pct}%"></div></div></div>`;
+    return `<div class="track-prog"><div class="tp-row"><span class="tp-name">${TRACK_LABELS[t] || t}</span><span class="tp-pct">${pct}%</span></div><div class="tp-bar"><div class="tp-fill" style="width:${pct}%"></div></div></div>`;
     }).join('');
   }
   // Weekly goal
@@ -1059,12 +1068,12 @@ function renderSearch(){
   if(!q){ res.innerHTML='<div style="padding:20px;text-align:center;color:var(--t4);font-size:.78rem">Type to search topics, resources, and certificates...</div>'; return; }
   const matches=SEARCH_INDEX.filter(i=>i.label.toLowerCase().includes(q)||i.links.toLowerCase().includes(q)).slice(0,12);
   if(!matches.length){ res.innerHTML='<div style="padding:16px;text-align:center;color:var(--t4);font-size:.78rem">No results found</div>'; return; }
-  res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.id}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${m.track.toUpperCase()}</span></div>`).join('');
+  res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.id}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${TRACK_LABELS[m.track] || m.track.toUpperCase()}</span></div>`).join('');
 }
 function goToTopic(trackOrId,topic){
   const meta = getTopicMeta(trackOrId, topic);
   if(!meta) return;
-  const tabBtn=[...document.querySelectorAll('.tab')].find(t=>t.textContent.toLowerCase().includes(meta.track.toLowerCase()));
+  const tabBtn=document.querySelector(`.tab[onclick*="switchTrack('${meta.track}'"]`);
   if(tabBtn) tabBtn.click();
   setTimeout(()=>{
     const card=getTopicCard(meta.id);
@@ -1308,13 +1317,15 @@ function exportProgress(){
     '## Completed Topics',
     ...done.map((k)=>{
       const meta=getTopicMeta(k);
-      return `- [x] ${meta ? `${meta.track.toUpperCase()} -> ${meta.topic}` : k}`;
+      const trackLabel = meta ? (TRACK_LABELS[meta.track] || meta.track.toUpperCase()) : '';
+      return `- [x] ${meta ? `${trackLabel} -> ${meta.topic}` : k}`;
     }),
     '',
     '## Notes',
     ...Object.entries(STATE.notes||{}).map(([k,v])=>{
       const meta=getTopicMeta(k);
-      return `### ${meta ? `${meta.track.toUpperCase()} -> ${meta.topic}` : k}\n${v}`;
+      const trackLabel = meta ? (TRACK_LABELS[meta.track] || meta.track.toUpperCase()) : '';
+      return `### ${meta ? `${trackLabel} -> ${meta.topic}` : k}\n${v}`;
     }),
   ];
   const blob=new Blob([lines.join('\n')],{type:'text/plain'});

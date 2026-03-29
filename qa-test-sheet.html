@@ -134,6 +134,7 @@
       <div class="meta">
         <div class="pill">Date: 2026-03-29</div>
         <div class="pill">Workspace: LevelUp</div>
+        <div class="pill" id="statusLegend">Status dropdown: &#9989; Pass / &#10060; Fail / Pending</div>
         <div class="pill">Status dropdown: ✅ Pass / ❌ Fail / Pending</div>
       </div>
     </div>
@@ -293,6 +294,58 @@
           <td class="note">Verified <code>.topic-card.recommended</code> rules in <code>styles.css</code>.</td>
         </tr>
         <tr>
+          <td>Static UI wiring: MLOps and DBA tabs, track containers, and generator chips exist</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Verified in <code>index.html</code>: both new tabs, both track containers, and both quick generator chips are present.</td>
+        </tr>
+        <tr>
+          <td>Static content check: MLOps roadmap extension includes 4 phases and 8 projects</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Parsed <code>js/roadmap-extensions.js</code>: <strong>4</strong> phase blocks and <strong>8</strong> projects for the built-in MLOps roadmap.</td>
+        </tr>
+        <tr>
+          <td>Static content check: DBA roadmap extension includes 4 phases and 8 projects</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Parsed <code>js/roadmap-extensions.js</code>: <strong>4</strong> phase blocks and <strong>8</strong> projects for the built-in DBA roadmap.</td>
+        </tr>
+        <tr>
+          <td>Static logic wiring: sidebar, search labels, export labels, and tab routing include MLOps and DBA</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Verified in <code>js/app.js</code>: <code>TRACK_LABELS</code>, the sidebar track array, search result tags, exports, and <code>goToTopic()</code> all support the new tracks.</td>
+        </tr>
+        <tr>
           <td>Manual UI check: hard refresh removes broken text and header renders cleanly</td>
           <td>2026-03-29</td>
           <td><span class="owner-badge owner-user">You</span></td>
@@ -304,6 +357,19 @@
             </select>
           </td>
           <td class="note">Open the app, press <code>Ctrl + F5</code>, and inspect header, tabs, intro banners, and cards.</td>
+        </tr>
+        <tr>
+          <td>Manual UI check: MLOps and DBA tabs open the correct roadmap sections</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+            </select>
+          </td>
+          <td class="note">Hard refresh, open both tabs, and confirm the intro banner, phases, cards, and sidebar progress render correctly.</td>
         </tr>
         <tr>
           <td>Manual logic check: marking a topic done increases XP, level progress, heatmap, and streak state correctly</td>
@@ -384,6 +450,32 @@
           <td class="note">Use <code>/</code>, search for a known topic, and confirm the right card opens.</td>
         </tr>
         <tr>
+          <td>Manual search check: MLOps and DBA topics switch to the correct tab and card</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+            </select>
+          </td>
+          <td class="note">Search for <code>Patroni</code>, <code>Feature Pipeline Demo</code>, or <code>Cloud Database Landing Zone</code> and confirm the app opens the correct new track.</td>
+        </tr>
+        <tr>
+          <td>Manual UX check: Resume and Next recommended work inside MLOps and DBA</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>&#9989; Pass</option>
+              <option>&#10060; Fail</option>
+            </select>
+          </td>
+          <td class="note">Open one topic in MLOps or DBA, switch away, and confirm both helper panels route back to the right track and card.</td>
+        </tr>
+        <tr>
           <td>Manual backup check: export backup then import backup restores state</td>
           <td>2026-03-29</td>
           <td><span class="owner-badge owner-user">You</span></td>
@@ -427,6 +519,19 @@
   </div>
 
   <script>
+    document.querySelectorAll('option').forEach((option) => {
+      if (option.textContent.includes('Pass')) option.textContent = '✅ Pass';
+      else if (option.textContent.includes('Fail')) option.textContent = '❌ Fail';
+      else if (option.textContent.includes('Pending')) option.textContent = 'Pending';
+    });
+    document.querySelectorAll('.meta .pill').forEach((pill) => {
+      if (pill.id !== 'statusLegend' && pill.textContent.includes('Status dropdown')) {
+        pill.remove();
+      }
+    });
+    const legend = document.getElementById('statusLegend');
+    if (legend) legend.innerHTML = 'Status dropdown: ✅ Pass / ❌ Fail / Pending';
+
     document.querySelectorAll('select').forEach((select) => {
       const applyClass = () => {
         select.classList.remove('pass', 'fail', 'pending');
