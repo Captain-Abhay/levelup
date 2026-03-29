@@ -15,14 +15,6 @@ const firebaseConfig = {
     messagingSenderId: "1087946243444",
     appId: "1:1087946243444:web:5916e95467217939728021"
 };
-let APP_STATE = {
-  progress: {},   // { "dsa:Arrays â€” Basics": true }
-  xp: 0,
-  level: 1
-};
-
-let CURRENT_USER = null;
-
 let app,auth,db,googleProvider,githubProvider,_unsubSnapshot=null;
 let FB_READY=false;
 const FB_LOG_PREFIX='[DevRoadmap Firebase]';
@@ -44,6 +36,79 @@ function safeParse(raw){
     fbWarn('Failed to parse synced state', error);
     return null;
   }
+}
+
+function safeObject(value){
+  return value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+}
+
+function normalizePersistedState(data){
+  const meta = safeObject(data?.meta);
+  const ai = safeObject(data?.ai);
+  const usage = safeObject(ai.usage || data?.aiUsage);
+  return {
+    version: Number(data?.version) || 2,
+    progress: safeObject(data?.progress),
+    notes: safeObject(data?.notes),
+    bookmarks: safeObject(data?.bookmarks),
+    completedAt: safeObject(data?.completedAt),
+    heatmap: safeObject(data?.heatmap),
+    streak: Number(meta.streak ?? data?.streak) || 0,
+    lastActive: meta.lastActive ?? data?.lastActive ?? null,
+    lastVisited: meta.lastVisited ?? data?.lastVisited ?? null,
+    weeklyGoal: Number(meta.weeklyGoal ?? data?.weeklyGoal) || 10,
+    weekDone: Number(meta.weekDone ?? data?.weekDone) || 0,
+    xp: Number(meta.xp ?? data?.xp) || 0,
+    level: Number(meta.level ?? data?.level) || 1,
+    genHistory: Array.isArray(data?.genHistory) ? data.genHistory : [],
+    apiKey: ai.apiKey ?? data?.apiKey ?? '',
+    aiUsage: {
+      calls: Number(usage.calls) || 0,
+      tokens: Number(usage.tokens) || 0
+    },
+    ai: safeObject(data?.ai)
+  };
+}
+
+function serializeStateForFirestore(data){
+  const normalized = normalizePersistedState(data);
+  return {
+    version: normalized.version,
+    progress: normalized.progress,
+    notes: normalized.notes,
+    bookmarks: normalized.bookmarks,
+    completedAt: normalized.completedAt,
+    heatmap: normalized.heatmap,
+    genHistory: normalized.genHistory,
+    meta: {
+      xp: normalized.xp,
+      level: normalized.level,
+      streak: normalized.streak,
+      lastActive: normalized.lastActive,
+      lastVisited: normalized.lastVisited,
+      weeklyGoal: normalized.weeklyGoal,
+      weekDone: normalized.weekDone
+    },
+    ai: {
+      apiKey: normalized.apiKey,
+      usage: normalized.aiUsage,
+      activeProvider: normalized.ai?.activeProvider || 'anthropic',
+      providers: safeObject(normalized.ai?.providers)
+    },
+    data: JSON.stringify(data),
+    ts: Date.now()
+  };
+}
+
+function deserializeStateFromDoc(snapshot){
+  if(!snapshot?.exists()) return null;
+  const raw = snapshot.data() || {};
+  const hasStructuredState =
+    raw.progress || raw.notes || raw.bookmarks || raw.completedAt || raw.heatmap || raw.meta || raw.ai || raw.genHistory;
+  if(hasStructuredState){
+    return normalizePersistedState(raw);
+  }
+  return normalizePersistedState(safeParse(raw.data));
 }
 
 try{
@@ -82,7 +147,7 @@ window._fbSignOut=async()=>{
 window._fbSave=async(uid,data)=>{
   if(!FB_READY||!db)return;
   try{
-    await setDoc(doc(db,'users',uid),{data:JSON.stringify(data),ts:Date.now()},{merge:true});
+    await setDoc(doc(db,'users',uid),serializeStateForFirestore(data),{merge:true});
   }catch(e){
     fbWarn('Save failed', { uid: uid, error: e });
     throw e;
@@ -93,7 +158,7 @@ window._fbLoad=async(uid)=>{
   try{
     const s=await getDoc(doc(db,'users',uid));
     fbInfo('Loaded user state', { uid: uid, exists: s.exists() });
-    return s.exists()?safeParse(s.data().data):null;
+    return deserializeStateFromDoc(s);
   }catch(e){
     fbWarn('Load failed', { uid: uid, error: e });
     return null;
@@ -105,7 +170,7 @@ window._fbWatch=async(uid,cb)=>{
   fbInfo('Attaching Firestore watcher', { uid: uid });
   _unsubSnapshot=onSnapshot(doc(db,'users',uid),(s)=>{
     if(!s.exists()) return;
-    const parsed=safeParse(s.data().data);
+    const parsed=deserializeStateFromDoc(s);
     if(parsed) cb(parsed);
   });
 };

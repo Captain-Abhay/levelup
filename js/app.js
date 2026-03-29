@@ -27,6 +27,9 @@ let _lastUndo = null;
 let _toggleLocks = {};
 let _lastActivityRecordedAt = 0;
 let _noteSaveTimers = new Map();
+let _syncRetryTimer = null;
+let _syncRetryCount = 0;
+let _syncInFlight = false;
 const APP_LOG_PREFIX='[DevRoadmap]';
 const DOM = {};
 const TOPIC_INDEX = new Map();
@@ -185,6 +188,7 @@ function normalizeVisibleText(root=document.body){
 }
 
 function cacheDOM(){
+  DOM.themeToggle = document.getElementById('themeToggleBtn');
   DOM.hdrXP = document.getElementById('hdrXP');
   DOM.hdrLevel = document.getElementById('hdrLevel');
   DOM.levelBadge = document.getElementById('levelBadge');
@@ -208,6 +212,12 @@ function cacheDOM(){
   DOM.historyChips = document.getElementById('historyChips');
   DOM.authOverlay = document.getElementById('authOverlay');
   DOM.userMenuWrap = document.getElementById('userMenuWrap');
+}
+
+function clearSyncRetry(){
+  clearTimeout(_syncRetryTimer);
+  _syncRetryTimer = null;
+  _syncRetryCount = 0;
 }
 
 function slugify(value){
@@ -371,6 +381,7 @@ function getActiveProviderConfig(){
 /* â”€â”€ FIREBASE BRIDGE â”€â”€ */
 window._handleSignIn = async (user) => {
   _currentUser = user;
+  clearSyncRetry();
   document.getElementById('authOverlay').classList.add('hidden');
   setTimeout(() => { document.getElementById('authOverlay').style.display = 'none'; }, 500);
   updateUserUI(user);
@@ -400,6 +411,7 @@ window._handleSignIn = async (user) => {
 };
 window._handleSignOut = () => {
   _currentUser = null;
+  clearSyncRetry();
   document.getElementById('authOverlay').style.display='flex';
   document.getElementById('authOverlay').classList.remove('hidden');
   document.getElementById('userMenuWrap').style.display='none';
@@ -425,22 +437,60 @@ window._demoMode = () => {
 function scheduleSave(){
   _isDirty=true;
   clearTimeout(_saveTimer);
-  _saveTimer=setTimeout(async()=>{
+  _saveTimer=setTimeout(()=>{
     if(!_isDirty) return;
     try{
       persistLocalSnapshot();
-      if(!_currentUser){ _isDirty=false; return; }
-      setSyncStatus('syncing','Syncing...');
-      await window._fbSave(_currentUser.uid, STATE);
-      setSyncStatus('ok','Synced');
-      _isDirty=false;
     }catch(error){
-      logError('Scheduled save failed', error);
-      setSyncStatus('off','Local');
-      toast('Sync failed. Your local changes are still kept.','!');
+      logError('Local snapshot failed before scheduled sync', error);
+      toast('Local save failed. Check browser storage.','!');
+      return;
     }
+    if(!_currentUser){
+      _isDirty=false;
+      setSyncStatus('off','Local');
+      return;
+    }
+    flushRemoteSave('scheduled');
   },1200);
 }
+
+async function flushRemoteSave(reason='manual'){
+  if(!_currentUser || !_isDirty || _syncInFlight) return;
+  _syncInFlight = true;
+  clearTimeout(_syncRetryTimer);
+  _syncRetryTimer = null;
+  try{
+    setSyncStatus('syncing', reason === 'retry' ? 'Retrying sync...' : 'Syncing...');
+    await window._fbSave(_currentUser.uid, STATE);
+    _isDirty = false;
+    clearSyncRetry();
+    setSyncStatus('ok','Synced');
+  }catch(error){
+    logError('Remote sync failed', { reason, error });
+    _isDirty = true;
+    if(!_currentUser){
+      setSyncStatus('off','Local');
+      return;
+    }
+    const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+    if(!isOnline){
+      setSyncStatus('off','Offline');
+      return;
+    }
+    _syncRetryCount += 1;
+    const retryDelay = Math.min(30000, 1500 * (2 ** Math.min(_syncRetryCount - 1, 4)));
+    setSyncStatus('off', `Retry in ${Math.round(retryDelay / 1000)}s`);
+    clearTimeout(_syncRetryTimer);
+    _syncRetryTimer = setTimeout(()=>{
+      flushRemoteSave('retry');
+    }, retryDelay);
+    toast(_syncRetryCount === 1 ? 'Sync failed. Retrying in the background.' : 'Still retrying sync in the background.','!');
+  }finally{
+    _syncInFlight = false;
+  }
+}
+
 window.forceSyncNow=()=>{
   try{
     persistLocalSnapshot();
@@ -449,10 +499,10 @@ window.forceSyncNow=()=>{
     return;
   }
   if(!_currentUser){ toast('Saved locally. Sign in to sync across devices.','i'); return; }
-  setSyncStatus('syncing','Syncing...');
-  window._fbSave(_currentUser.uid, STATE)
-    .then(()=>{ setSyncStatus('ok','Synced'); toast('Synced!','OK'); _isDirty=false; })
-    .catch((error)=>{ logError('Force sync failed', error); setSyncStatus('off','Local'); toast('Sync failed. Try again in a moment.','!'); });
+  _isDirty = true;
+  flushRemoteSave('manual')
+    .then(()=>{ if(!_isDirty) toast('Synced!','OK'); })
+    .catch(()=>{});
 };
 
 function updateApp(options={}){
@@ -503,7 +553,7 @@ function setSyncStatus(state,label){
 /* â”€â”€ API KEY â”€â”€ */
 function switchAKTab(){ /* deprecated UI */ }
 function toggleAKVis(){
-  const input=document.getElementById('providerKeyInput');
+  const input=document.getElementById('providerKeyInput') || document.getElementById('akInput');
   if(input){ input.type=input.type==='password'?'text':'password'; }
 }
 function validateAKInput(){ /* validation is provider-specific now */ }
@@ -573,7 +623,7 @@ function updateGenKeyStatus(){
   const provider=getActiveProvider();
   const config=getActiveProviderConfig();
   if(provider.id==='prompt'){
-    el.innerHTML='Prompt Mode is active. You can generate a copy-paste prompt for free, or <span style="text-decoration:underline;cursor:pointer" onclick="openApiSetup()">connect an API provider</span> for in-app generation.';
+    el.innerHTML='Prompt Mode is active. You can generate a copy-paste prompt for free, or <button class="inline-action-btn" data-action="open-api-setup" type="button">connect an API provider</button> for in-app generation.';
     el.style.color='var(--learn)';
     return;
   }
@@ -581,7 +631,7 @@ function updateGenKeyStatus(){
     el.textContent=provider.name + ' configured - ready to generate.';
     el.style.color='var(--done)';
   }else{
-    el.innerHTML='No key set for ' + provider.name + '. <span style="text-decoration:underline;cursor:pointer" onclick="openApiSetup()">Configure provider</span> or switch to Prompt Mode.';
+    el.innerHTML='No key set for ' + provider.name + '. <button class="inline-action-btn" data-action="open-api-setup" type="button">Configure provider</button> or switch to Prompt Mode.';
     el.style.color='var(--learn)';
   }
 }
@@ -710,6 +760,13 @@ function enhanceTopicCards(){
   updateBookmarkButtons();
 }
 
+function upgradeLegacyMarkup(){
+  document.querySelectorAll('.phase-header[onclick]').forEach((header)=>{
+    header.removeAttribute('onclick');
+    header.dataset.action = 'toggle-phase';
+  });
+}
+
 function toggleBookmark(btn, trackOrId, topic){
   const meta = getTopicMeta(trackOrId, topic) || getTopicMeta(btn?.dataset?.id);
   if(!meta) return;
@@ -745,7 +802,7 @@ function undoLastAction(){
 function showUndoToast(topic){
   const el=document.createElement('div');
   el.className='toast';
-  el.innerHTML=`<span>Done</span><span>${topic} done.</span><button class="btn-secondary" style="padding:4px 10px;font-size:.7rem;margin-left:auto" onclick="undoLastAction(); this.closest('.toast').remove()">Undo</button>`;
+  el.innerHTML=`<span>Done</span><span>${topic} done.</span><button class="btn-secondary" type="button" data-action="undo-last-action" style="padding:4px 10px;font-size:.7rem;margin-left:auto">Undo</button>`;
   document.getElementById('toasts').appendChild(el);
   requestAnimationFrame(()=>{ requestAnimationFrame(()=>el.classList.add('show')); });
   setTimeout(()=>{ if(el.isConnected){ el.classList.remove('show'); setTimeout(()=>el.remove(),400); } },5000);
@@ -877,7 +934,7 @@ function renderNextTopicPanel(){
   panel.innerHTML=`
     <div class="helper-title">${next.dataset.topic}</div>
     <div class="helper-copy">Recommended next step from ${trackLabel} based on what is still incomplete.</div>
-    <div class="helper-link" onclick="goToTopic('${next.dataset.id}')">Open topic</div>
+    <div class="helper-link" data-action="go-to-topic" data-id="${next.dataset.id}">Open topic</div>
   `;
 }
 
@@ -895,7 +952,7 @@ function renderResumePanel(){
   panel.innerHTML=`
     <div class="helper-title">${topicMeta.topic}</div>
     <div class="helper-meta">${trackLabel} | ${visitedAt}</div>
-    <div class="helper-link" onclick="goToTopic('${topicMeta.id}')">Resume</div>
+    <div class="helper-link" data-action="go-to-topic" data-id="${topicMeta.id}">Resume</div>
   `;
 }
 
@@ -911,7 +968,7 @@ function renderBookmarksPanel(){
     const meta = getTopicMeta(key);
     if(!meta) return '';
     const trackLabel = TRACK_LABELS[meta.track] || meta.track.toUpperCase();
-    return `<div class="helper-item"><div class="helper-title">${meta.topic}</div><div class="helper-meta">${trackLabel}</div><div class="helper-link" onclick="goToTopic('${meta.id}')">Open</div></div>`;
+    return `<div class="helper-item"><div class="helper-title">${meta.topic}</div><div class="helper-meta">${trackLabel}</div><div class="helper-link" data-action="go-to-topic" data-id="${meta.id}">Open</div></div>`;
   }).join('');
 }
 
@@ -1009,9 +1066,132 @@ function togglePhase(hdr){
   ch.style.transform=isOpen?'':'rotate(180deg)';
 }
 
+function handleAppAction(actionEl, event){
+  const action = actionEl.dataset.action;
+  switch(action){
+    case 'auth-sign-in':
+      window._fbSignIn(actionEl.dataset.provider);
+      return true;
+    case 'demo-mode':
+      window._demoMode();
+      return true;
+    case 'switch-ak-tab':
+      switchAKTab(actionEl.dataset.tab, actionEl);
+      return true;
+    case 'toggle-ak-vis':
+      toggleAKVis();
+      return true;
+    case 'switch-ai-provider':
+      switchAIProvider(actionEl.dataset.providerId);
+      return true;
+    case 'save-api-key':
+      saveApiKey();
+      return true;
+    case 'skip-api-key':
+      skipApiKey();
+      return true;
+    case 'dismiss-search-overlay':
+      if(event.target === actionEl) closeSearch();
+      return true;
+    case 'dismiss-modal-self':
+      if(event.target === actionEl) actionEl.classList.remove('open');
+      return true;
+    case 'close-modal':
+      document.getElementById(actionEl.dataset.target)?.classList.remove('open');
+      return true;
+    case 'open-search':
+      openSearch();
+      return true;
+    case 'scroll-sidebar':
+      scrollToSidebar();
+      return true;
+    case 'toggle-theme':
+      toggleTheme();
+      return true;
+    case 'open-modal':
+      document.getElementById(actionEl.dataset.target)?.classList.add('open');
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'show-usage':
+      openUsageModal();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'show-keyboard-help':
+      showKeyboardHelp();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'toggle-user-menu':
+      toggleUserMenu();
+      return true;
+    case 'open-api-setup':
+      openApiSetup();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'close-user-menu':
+      closeUserMenu();
+      return true;
+    case 'force-sync':
+      forceSyncNow();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'export-progress':
+      exportProgress();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'export-backup':
+      exportBackup();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'import-backup':
+      triggerImportBackup();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'show-shortcuts':
+      showKeyboardHelp();
+      if(actionEl.dataset.closeMenu === 'true') closeUserMenu();
+      return true;
+    case 'confirm-sign-out':
+      confirmSignOut();
+      return true;
+    case 'switch-track':
+      switchTrack(actionEl.dataset.track, actionEl);
+      return true;
+    case 'toggle-phase':
+      togglePhase(actionEl);
+      return true;
+    case 'generate-roadmap':
+      generateRoadmap();
+      return true;
+    case 'quick-gen':
+      quickGen(actionEl.dataset.topic);
+      return true;
+    case 'go-to-topic':
+      goToTopic(actionEl.dataset.id);
+      if(actionEl.dataset.closeSearch === 'true') closeSearch();
+      return true;
+    case 'undo-last-action':
+      undoLastAction();
+      actionEl.closest('.toast')?.remove();
+      return true;
+    case 'edit-weekly-goal':
+      editWeeklyGoal();
+      return true;
+    case 'configure-ai-from-usage':
+      document.getElementById('usageModal')?.classList.remove('open');
+      openApiSetup();
+      return true;
+    case 'close-kb-help':
+      document.getElementById('kbHelp')?.remove();
+      return true;
+    default:
+      return false;
+  }
+}
+
 function handleDelegatedClick(event){
   const actionEl = event.target.closest('[data-action]');
   if(!actionEl) return;
+  if(handleAppAction(actionEl, event)) return;
   const id = actionEl.dataset.id;
   switch(actionEl.dataset.action){
     case 'toggle-done':
@@ -1032,21 +1212,70 @@ function handleDelegatedClick(event){
 }
 
 function handleDelegatedInput(event){
-  const input = event.target.closest('[data-action="save-note"]');
+  const input = event.target.closest('[data-action]');
   if(!input) return;
-  const id = input.dataset.id;
-  clearTimeout(_noteSaveTimers.get(id));
-  const timer = setTimeout(()=>{
-    saveNote(input, id);
-    _noteSaveTimers.delete(id);
-  }, 250);
-  _noteSaveTimers.set(id, timer);
+  switch(input.dataset.action){
+    case 'save-note': {
+      const id = input.dataset.id;
+      clearTimeout(_noteSaveTimers.get(id));
+      const timer = setTimeout(()=>{
+        saveNote(input, id);
+        _noteSaveTimers.delete(id);
+      }, 250);
+      _noteSaveTimers.set(id, timer);
+      break;
+    }
+    case 'search-input':
+      renderSearch();
+      break;
+    case 'validate-api-key':
+      validateAKInput();
+      break;
+    case 'update-active-model':
+      updateActiveModel(input.value);
+      break;
+    case 'update-active-model-generator':
+      updateActiveModel(input.value, true);
+      break;
+    case 'update-active-key':
+      updateActiveKey(input.value);
+      break;
+    default:
+      break;
+  }
+}
+
+function handleDelegatedChange(event){
+  const input = event.target.closest('[data-action]');
+  if(!input) return;
+  switch(input.dataset.action){
+    case 'import-backup-file':
+      importBackup(event);
+      break;
+    case 'switch-ai-provider-select':
+      switchAIProvider(input.value);
+      break;
+    case 'switch-ai-provider-generator':
+      switchAIProvider(input.value, true);
+      break;
+    default:
+      break;
+  }
 }
 
 function handleDelegatedKeydown(event){
-  const input = event.target.closest('[data-action="save-note"]');
-  if(input && event.key === 'Escape'){
+  const input = event.target.closest('[data-action]');
+  if(!input) return;
+  if(input.dataset.action === 'save-note' && event.key === 'Escape'){
     input.closest('.note-box')?.style.setProperty('display','none');
+  }
+  if(input.dataset.action === 'generate-on-enter' && event.key === 'Enter'){
+    event.preventDefault();
+    generateRoadmap();
+  }
+  if(input.dataset.action === 'toggle-ak-vis' && (event.key === 'Enter' || event.key === ' ')){
+    event.preventDefault();
+    toggleAKVis();
   }
 }
 
@@ -1068,12 +1297,12 @@ function renderSearch(){
   if(!q){ res.innerHTML='<div style="padding:20px;text-align:center;color:var(--t4);font-size:.78rem">Type to search topics, resources, and certificates...</div>'; return; }
   const matches=SEARCH_INDEX.filter(i=>i.label.toLowerCase().includes(q)||i.links.toLowerCase().includes(q)).slice(0,12);
   if(!matches.length){ res.innerHTML='<div style="padding:16px;text-align:center;color:var(--t4);font-size:.78rem">No results found</div>'; return; }
-  res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.id}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${TRACK_LABELS[m.track] || m.track.toUpperCase()}</span></div>`).join('');
+  res.innerHTML=matches.map(m=>`<div class="gs-item" data-action="go-to-topic" data-id="${m.id}" data-close-search="true"><span>${m.label}</span><span class="gs-item-tag">${TRACK_LABELS[m.track] || m.track.toUpperCase()}</span></div>`).join('');
 }
 function goToTopic(trackOrId,topic){
   const meta = getTopicMeta(trackOrId, topic);
   if(!meta) return;
-  const tabBtn=document.querySelector(`.tab[onclick*="switchTrack('${meta.track}'"]`);
+  const tabBtn=document.querySelector(`.tab[data-track="${meta.track}"]`);
   if(tabBtn) tabBtn.click();
   setTimeout(()=>{
     const card=getTopicCard(meta.id);
@@ -1122,10 +1351,10 @@ function openUsageModal(){
     `:`
     <div style="background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.2);border-radius:10px;padding:12px;font-size:.8rem;color:var(--learn)">
       ${provider.id==='prompt'?'Prompt Mode is active. You can copy prompts into free web chat tools, or connect an API for in-app generation.':'No API key saved for the active provider yet.'}
-      <br><button class="btn-primary" style="margin-top:8px;font-size:.75rem;padding:6px 14px" onclick="openApiSetup();document.getElementById('usageModal').classList.remove('open')">Configure AI -></button>
+      <br><button class="btn-primary" style="margin-top:8px;font-size:.75rem;padding:6px 14px" type="button" data-action="configure-ai-from-usage">Configure AI -></button>
     </div>
     `}
-    <button class="btn-secondary" style="margin-top:14px;width:100%" onclick="document.getElementById('usageModal').classList.remove('open')">Close</button>
+    <button class="btn-secondary" style="margin-top:14px;width:100%" type="button" data-action="close-modal" data-target="usageModal">Close</button>
   `;
   modal.classList.add('open');
 }
@@ -1142,7 +1371,7 @@ function addToHistory(t){
   STATE.genHistory=([t,...(STATE.genHistory||[])]).slice(0,10);
   const sec=document.getElementById('historySection');
   sec.style.display='block';
-  document.getElementById('historyChips').innerHTML=STATE.genHistory.map(h=>`<div class="history-chip" onclick="quickGen('${h}')">${h}</div>`).join('');
+  document.getElementById('historyChips').innerHTML=STATE.genHistory.map(h=>`<div class="history-chip" data-action="quick-gen" data-topic="${h}">${h}</div>`).join('');
   scheduleSave();
 }
 function renderGenRoadmap(data,topic){
@@ -1152,7 +1381,7 @@ function renderGenRoadmap(data,topic){
   }
   (data.phases||[]).forEach((phase,i)=>{
     const c=PHASE_COLORS[i%PHASE_COLORS.length];
-    html+=`<div class="phase"><div class="phase-header" onclick="togglePhase(this)">
+    html+=`<div class="phase"><div class="phase-header" data-action="toggle-phase">
       <div class="phase-badge" style="background:${c.bg};color:${c.color}">Phase ${i+1}</div>
       <div class="phase-title">${phase.title||''}</div>
       <div class="phase-meta">${phase.duration||''}</div>
@@ -1222,7 +1451,7 @@ function toggleTheme(){
   const isDark=!document.documentElement.dataset.theme;
   document.documentElement.dataset.theme=isDark?'light':'';
   localStorage.setItem('theme',isDark?'light':'dark');
-  document.getElementById('hdr').querySelector('.ic-btn').textContent=isDark?'D':'L';
+  if(DOM.themeToggle) DOM.themeToggle.textContent=isDark?'D':'L';
 }
 
 /* â”€â”€ TOAST â”€â”€ */
@@ -1347,7 +1576,7 @@ function scrollToSidebar(){ document.getElementById('sidebar')?.scrollIntoView({
 function restoreGenHistory(){
   if(!STATE.genHistory?.length) return;
   document.getElementById('historySection').style.display='block';
-  document.getElementById('historyChips').innerHTML=STATE.genHistory.map(h=>`<div class="history-chip" onclick="quickGen('${h}')">${h}</div>`).join('');
+  document.getElementById('historyChips').innerHTML=STATE.genHistory.map(h=>`<div class="history-chip" data-action="quick-gen" data-topic="${h}">${h}</div>`).join('');
 }
 
 /* â”€â”€ INIT â”€â”€ */
@@ -1356,9 +1585,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   cacheDOM();
   // Restore theme
   const savedTheme=localStorage.getItem('theme');
-  if(savedTheme==='light'){ document.documentElement.dataset.theme='light'; document.getElementById('hdr').querySelector('.ic-btn[onclick*=toggleTheme]').textContent='D'; }
+  if(savedTheme==='light'){
+    document.documentElement.dataset.theme='light';
+    if(DOM.themeToggle) DOM.themeToggle.textContent='D';
+  }
 
   if(window.RoadmapExtensions){ window.RoadmapExtensions.apply(); }
+  upgradeLegacyMarkup();
   assignTopicIds();
   migrateStateKeys();
   normalizeVisibleText(document.body);
@@ -1370,7 +1603,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateGenKeyStatus();
   document.addEventListener('click', handleDelegatedClick);
   document.addEventListener('input', handleDelegatedInput);
-  document.addEventListener('change', handleDelegatedInput);
+  document.addEventListener('change', handleDelegatedChange);
   document.addEventListener('keydown', handleDelegatedKeydown);
 
   // Keyboard shortcuts
@@ -1393,7 +1626,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         b.textContent='You are offline - changes will sync when reconnected'; document.body.appendChild(b); }
     }
   }
-  window.addEventListener('online',()=>{ setOnline(true); if(_currentUser) forceSyncNow(); });
+  window.addEventListener('online',()=>{ setOnline(true); if(_currentUser){ _isDirty = true; flushRemoteSave('online'); } });
   window.addEventListener('offline',()=>setOnline(false));
   if(!navigator.onLine) setOnline(false);
   logInfo('App initialized', {
@@ -1435,7 +1668,7 @@ function showKeyboardHelp(){
       <span style="color:var(--t2)">${v}</span>
       <kbd style="font-family:var(--font-m);font-size:.65rem;background:var(--s3);border:1px solid var(--b2);border-radius:4px;padding:2px 8px">${k}</kbd>
     </div>`).join('')}
-    <button onclick="document.getElementById('kbHelp').remove()" style="margin-top:14px;width:100%;padding:8px;border-radius:8px;background:var(--s2);border:1px solid var(--b1);cursor:pointer;font-size:.8rem;color:var(--t1)">Close</button>
+    <button type="button" data-action="close-kb-help" style="margin-top:14px;width:100%;padding:8px;border-radius:8px;background:var(--s2);border:1px solid var(--b1);cursor:pointer;font-size:.8rem;color:var(--t1)">Close</button>
   </div>`;
   document.body.appendChild(d);
 }

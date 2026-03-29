@@ -16,7 +16,7 @@
 
 <!-- TOASTS -->
 <div id="toasts"></div>
-<input id="importBackupInput" type="file" accept=".json,application/json" style="display:none" onchange="importBackup(event)">
+<input id="importBackupInput" type="file" accept=".json,application/json" style="display:none" data-action="import-backup-file">
 
 <!-- AUTH OVERLAY -->
 <div id="authOverlay">
@@ -24,16 +24,16 @@
     <div class="auth-logo">ðŸ—º</div>
     <div class="auth-title">DevRoadmap Pro</div>
     <div class="auth-sub">Sign in to sync your progress across all devices and unlock roadmap generation with Anthropic, OpenAI, Gemini, OpenRouter, or free prompt mode.</div>
-    <button class="auth-btn google" onclick="window._fbSignIn('google')">
+    <button class="auth-btn google" type="button" data-action="auth-sign-in" data-provider="google">
       <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       Continue with Google
     </button>
-    <button class="auth-btn github" onclick="window._fbSignIn('github')">
+    <button class="auth-btn github" type="button" data-action="auth-sign-in" data-provider="github">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
       Continue with GitHub
     </button>
     <div class="auth-divider">or</div>
-    <button class="auth-btn demo" onclick="window._demoMode()">âš¡ Try without account</button>
+    <button class="auth-btn demo" type="button" data-action="demo-mode">âš¡ Try without account</button>
     <div class="auth-features">
       <div class="af-item"><span>â˜ï¸</span> Progress synced across all your devices</div>
       <div class="af-item"><span>ðŸ”‘</span> Save one or more AI provider keys securely</div>
@@ -41,7 +41,7 @@
       <div class="af-item"><span>ðŸ“Š</span> XP, Streaks & Activity Heatmap</div>
     </div>
     <div id="authError" class="auth-error"></div>
-    <p style="margin-top:14px;font-size:.68rem;color:var(--t4)">No Firebase configured? <span style="color:var(--ai);cursor:pointer" onclick="window._demoMode()">Enter demo mode â†’</span></p>
+    <p style="margin-top:14px;font-size:.68rem;color:var(--t4)">No Firebase configured? <button type="button" class="inline-action-btn" data-action="demo-mode">Enter demo mode â†’</button></p>
   </div>
 </div>
 
@@ -52,16 +52,16 @@
     <div class="api-setup-title">Connect Claude AI</div>
     <div class="api-setup-sub">AI features (Mentor, Goal Generator, Roadmap Builder) need your Claude API key or work via your claude.ai subscription.</div>
     <div class="ak-tabs">
-      <button class="ak-tab on" onclick="switchAKTab('key',this)">API Key (Recommended)</button>
-      <button class="ak-tab" onclick="switchAKTab('sub',this)">claude.ai Subscription</button>
+      <button class="ak-tab on" type="button" data-action="switch-ak-tab" data-tab="key">API Key (Recommended)</button>
+      <button class="ak-tab" type="button" data-action="switch-ak-tab" data-tab="sub">claude.ai Subscription</button>
     </div>
     <div id="aktab-key" class="ak-tab-pane on">
       <div class="ak-step"><span class="ak-num">1</span><span>Go to <a href="https://console.anthropic.com/account/keys" target="_blank" style="color:var(--ai)">console.anthropic.com</a> â†’ Create Key</span></div>
       <div class="ak-step"><span class="ak-num">2</span><span>Free tier gives ~$5 credit (â‰ˆ 500 AI responses)</span></div>
       <div class="ak-step"><span class="ak-num">3</span><span>Paste it below â€” stored securely in your Firebase profile</span></div>
       <div class="ak-input-wrap">
-        <input id="akInput" type="password" placeholder="sk-ant-api03-..." class="ak-input" oninput="validateAKInput()">
-        <span class="ak-vis-btn" onclick="toggleAKVis()">ðŸ‘</span>
+        <input id="akInput" type="password" placeholder="sk-ant-api03-..." class="ak-input" data-action="validate-api-key">
+        <span class="ak-vis-btn" role="button" tabindex="0" data-action="toggle-ak-vis">ðŸ‘</span>
       </div>
       <div id="akValidation" class="ak-validation"></div>
     </div>
@@ -75,18 +75,18 @@
       <p style="font-size:.72rem;color:var(--t3);margin-top:8px">Without an API key, AI calls go through a CORS proxy. Quality is the same, but rate limits apply.</p>
     </div>
     <div style="display:flex;gap:8px;margin-top:18px">
-      <button class="btn-primary" onclick="saveApiKey()">Save & Continue ðŸš€</button>
-      <button class="btn-secondary" onclick="skipApiKey()">Skip for now</button>
+      <button class="btn-primary" type="button" data-action="save-api-key">Save & Continue ðŸš€</button>
+      <button class="btn-secondary" type="button" data-action="skip-api-key">Skip for now</button>
     </div>
   </div>
 </div>
 
 <!-- GLOBAL SEARCH -->
-<div id="gSearch" onclick="if(event.target===this)closeSearch()">
+<div id="gSearch" data-action="dismiss-search-overlay">
   <div class="gs-box">
     <div class="gs-input-wrap">
       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" opacity=".4"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <input id="gsInput" placeholder="Search topics, resources, certificates..." oninput="renderSearch()" autofocus>
+      <input id="gsInput" placeholder="Search topics, resources, certificates..." data-action="search-input" autofocus>
       <span class="kbd">Esc</span>
     </div>
     <div class="gs-results" id="gsResults"></div>
@@ -94,12 +94,12 @@
 </div>
 
 <!-- HOSTING GUIDE MODAL -->
-<div class="modal-wrap" id="hostingModal" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="modal-wrap" id="hostingModal" data-action="dismiss-modal-self">
   <div class="hosting-card">
     <div class="hosting-hdr">
       <span>ðŸš€</span>
       <h2>Host for Free (Access from Any Device)</h2>
-      <button class="ic-btn" onclick="document.getElementById('hostingModal').classList.remove('open')">âœ•</button>
+      <button class="ic-btn" type="button" data-action="close-modal" data-target="hostingModal">âœ•</button>
     </div>
     <div class="hosting-body">
       <p style="font-size:.8rem;color:var(--t3);margin-bottom:16px">Host once â†’ access from phone, tablet, laptop. All progress syncs via Firebase.</p>
@@ -133,12 +133,12 @@ firebase deploy</div>
 </div>
 
 <!-- USAGE MODAL -->
-<div class="modal-wrap" id="usageModal" onclick="if(event.target===this)this.classList.remove('open')">
+<div class="modal-wrap" id="usageModal" data-action="dismiss-modal-self">
   <div class="usage-card">
     <div class="usage-hdr">
       <span>ðŸ“Š</span>
       <h2>Your AI Usage <span id="usageTierPill" class="usage-tier-pill tier-free">Free</span></h2>
-      <button class="ic-btn" onclick="document.getElementById('usageModal').classList.remove('open')">âœ•</button>
+      <button class="ic-btn" type="button" data-action="close-modal" data-target="usageModal">âœ•</button>
     </div>
     <div class="usage-body" id="usageBody"></div>
   </div>
@@ -148,32 +148,32 @@ firebase deploy</div>
 <header id="hdr">
   <div class="logo"><div class="logo-icon">DR</div>DevRoadmap<span style="color:var(--ai);font-size:.65rem;margin-left:1px">Pro</span></div>
   <div class="hdr-mid">
-    <div class="hdr-search" onclick="openSearch()">
+    <div class="hdr-search" data-action="open-search">
       <svg width="12" height="12" fill="none" viewBox="0 0 24 24" opacity=".4"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       <input placeholder="Search topics... ( / )" readonly>
     </div>
   </div>
   <div class="hdr-right">
     <div class="sync-dot-wrap sync-off" id="syncPill"><div class="sync-dot"></div><span id="syncLabel">Local</span></div>
-    <div class="xp-pill" id="xpPill" onclick="scrollToSidebar()" title="Your XP">XP <span id="hdrXP">0</span> | <span id="hdrLevel">Lv.1</span></div>
-    <button class="ic-btn" onclick="toggleTheme()" title="Toggle theme">L</button>
-    <button class="ic-btn" onclick="document.getElementById('hostingModal').classList.add('open')" title="Hosting guide">H</button>
-    <button class="ic-btn" onclick="openUsageModal()" title="AI usage stats">U</button>
-    <button class="ic-btn" onclick="showKeyboardHelp()" title="Keyboard shortcuts (?)">?</button>
+    <div class="xp-pill" id="xpPill" data-action="scroll-sidebar" title="Your XP">XP <span id="hdrXP">0</span> | <span id="hdrLevel">Lv.1</span></div>
+    <button class="ic-btn" id="themeToggleBtn" type="button" data-action="toggle-theme" title="Toggle theme">L</button>
+    <button class="ic-btn" type="button" data-action="open-modal" data-target="hostingModal" title="Hosting guide">H</button>
+    <button class="ic-btn" type="button" data-action="show-usage" title="AI usage stats">U</button>
+    <button class="ic-btn" type="button" data-action="show-keyboard-help" title="Keyboard shortcuts (?)">?</button>
     <div class="user-menu-wrap" id="userMenuWrap" style="display:none">
-      <div class="user-avatar" id="userAvatar" onclick="toggleUserMenu()">?</div>
+      <div class="user-avatar" id="userAvatar" data-action="toggle-user-menu">?</div>
       <div class="user-menu" id="userMenu">
         <div class="um-info"><div class="um-name" id="umName">Guest</div><div class="um-email" id="umEmail">-</div></div>
-        <div class="um-item" onclick="openApiSetup();closeUserMenu()">API Key Settings</div>
-        <div class="um-item" onclick="openUsageModal();closeUserMenu()">AI Usage</div>
-        <div class="um-item" onclick="document.getElementById('hostingModal').classList.add('open');closeUserMenu()">Hosting Guide</div>
-        <div class="um-item" onclick="forceSyncNow()">Sync Now</div>
-        <div class="um-item" onclick="exportProgress();closeUserMenu()">Export Progress</div>
-        <div class="um-item" onclick="exportBackup();closeUserMenu()">Export Backup</div>
-        <div class="um-item" onclick="triggerImportBackup();closeUserMenu()">Import Backup</div>
-        <div class="um-item" onclick="showKeyboardHelp();closeUserMenu()">Shortcuts</div>
+        <div class="um-item" data-action="open-api-setup" data-close-menu="true">API Key Settings</div>
+        <div class="um-item" data-action="show-usage" data-close-menu="true">AI Usage</div>
+        <div class="um-item" data-action="open-modal" data-target="hostingModal" data-close-menu="true">Hosting Guide</div>
+        <div class="um-item" data-action="force-sync" data-close-menu="true">Sync Now</div>
+        <div class="um-item" data-action="export-progress" data-close-menu="true">Export Progress</div>
+        <div class="um-item" data-action="export-backup" data-close-menu="true">Export Backup</div>
+        <div class="um-item" data-action="import-backup" data-close-menu="true">Import Backup</div>
+        <div class="um-item" data-action="show-shortcuts" data-close-menu="true">Shortcuts</div>
         <div class="um-sep"></div>
-        <div class="um-item um-danger" onclick="confirmSignOut()">Sign Out</div>
+        <div class="um-item um-danger" data-action="confirm-sign-out">Sign Out</div>
       </div>
     </div>
   </div>
@@ -181,12 +181,12 @@ firebase deploy</div>
 
 <!-- TAB BAR -->
 <div id="tabBar">
-  <button class="tab active" onclick="switchTrack('dsa',this)">DSA & Algorithms</button>
-  <button class="tab" onclick="switchTrack('webdev',this)">Web Development</button>
-  <button class="tab" onclick="switchTrack('ai',this)">AI / ML</button>
-  <button class="tab" onclick="switchTrack('mlops',this)">MLOps</button>
-  <button class="tab" onclick="switchTrack('dba',this)">DBA / Data Platforms</button>
-  <button class="tab gen-tab" onclick="switchTrack('generator',this)">Generate Any Roadmap</button>
+  <button class="tab active" type="button" data-action="switch-track" data-track="dsa">DSA & Algorithms</button>
+  <button class="tab" type="button" data-action="switch-track" data-track="webdev">Web Development</button>
+  <button class="tab" type="button" data-action="switch-track" data-track="ai">AI / ML</button>
+  <button class="tab" type="button" data-action="switch-track" data-track="mlops">MLOps</button>
+  <button class="tab" type="button" data-action="switch-track" data-track="dba">DBA / Data Platforms</button>
+  <button class="tab gen-tab" type="button" data-action="switch-track" data-track="generator">Generate Any Roadmap</button>
 </div>
 
 <!-- APP CONTENT -->
@@ -1041,24 +1041,24 @@ firebase deploy</div>
           <div class="gen-sub">Type any tech topic and generate a detailed learning roadmap with Anthropic, OpenAI, Gemini, OpenRouter, or free prompt mode - phases, docs, videos, practice links, projects, and certificates.<br><span id="genKeyStatus" style="color:var(--ai)">Choose a provider below or use Prompt Mode if you want a free copy-paste workflow.</span></div>
           <div id="generatorProviderMount"></div>
           <div class="input-row">
-            <input class="topic-input" id="topicInput" placeholder="e.g. DevOps, Cybersecurity, Mobile Dev, Blockchain, Game Dev..." onkeydown="if(event.key==='Enter')generateRoadmap()">
-            <button class="gen-btn" id="genBtn" onclick="generateRoadmap()">Generate -></button>
+            <input class="topic-input" id="topicInput" placeholder="e.g. DevOps, Cybersecurity, Mobile Dev, Blockchain, Game Dev..." data-action="generate-on-enter">
+            <button class="gen-btn" id="genBtn" type="button" data-action="generate-roadmap">Generate -></button>
           </div>
           <div class="chips">
-            <div class="chip" onclick="quickGen('DevOps')">DevOps</div>
-            <div class="chip" onclick="quickGen('Cybersecurity')">Cybersecurity</div>
-            <div class="chip" onclick="quickGen('MLOps')">MLOps</div>
-            <div class="chip" onclick="quickGen('Database Administration and Data Platform Engineering')">DBA</div>
-            <div class="chip" onclick="quickGen('Mobile Development with Flutter')">Mobile Dev</div>
-            <div class="chip" onclick="quickGen('Blockchain & Web3')">Blockchain</div>
-            <div class="chip" onclick="quickGen('Data Engineering')">Data Engineering</div>
-            <div class="chip" onclick="quickGen('Game Development with Unity')">Game Dev</div>
-            <div class="chip" onclick="quickGen('Cloud Architecture on AWS')">Cloud / AWS</div>
-            <div class="chip" onclick="quickGen('Open Source Contributing')">Open Source</div>
-            <div class="chip" onclick="quickGen('Embedded Systems & IoT')">Embedded / IoT</div>
-            <div class="chip" onclick="quickGen('System Design for FAANG')">System Design</div>
-            <div class="chip" onclick="quickGen('Rust Programming Language')">Rust</div>
-            <div class="chip" onclick="quickGen('Competitive Programming')">Competitive Prog.</div>
+            <div class="chip" data-action="quick-gen" data-topic="DevOps">DevOps</div>
+            <div class="chip" data-action="quick-gen" data-topic="Cybersecurity">Cybersecurity</div>
+            <div class="chip" data-action="quick-gen" data-topic="MLOps">MLOps</div>
+            <div class="chip" data-action="quick-gen" data-topic="Database Administration and Data Platform Engineering">DBA</div>
+            <div class="chip" data-action="quick-gen" data-topic="Mobile Development with Flutter">Mobile Dev</div>
+            <div class="chip" data-action="quick-gen" data-topic="Blockchain & Web3">Blockchain</div>
+            <div class="chip" data-action="quick-gen" data-topic="Data Engineering">Data Engineering</div>
+            <div class="chip" data-action="quick-gen" data-topic="Game Development with Unity">Game Dev</div>
+            <div class="chip" data-action="quick-gen" data-topic="Cloud Architecture on AWS">Cloud / AWS</div>
+            <div class="chip" data-action="quick-gen" data-topic="Open Source Contributing">Open Source</div>
+            <div class="chip" data-action="quick-gen" data-topic="Embedded Systems & IoT">Embedded / IoT</div>
+            <div class="chip" data-action="quick-gen" data-topic="System Design for FAANG">System Design</div>
+            <div class="chip" data-action="quick-gen" data-topic="Rust Programming Language">Rust</div>
+            <div class="chip" data-action="quick-gen" data-topic="Competitive Programming">Competitive Prog.</div>
           </div>
           <div class="status-bar" id="status"></div>
         </div>
@@ -1124,7 +1124,7 @@ firebase deploy</div>
           <div class="goal-info">
             <div class="goal-title">Weekly Goal</div>
             <div class="goal-sub" id="goalSub">0 of 10 topics</div>
-            <div class="goal-edit" onclick="editWeeklyGoal()">Change goal â†’</div>
+            <div class="goal-edit" data-action="edit-weekly-goal">Change goal â†’</div>
           </div>
         </div>
       </div>
@@ -1141,10 +1141,10 @@ firebase deploy</div>
       <div class="panel">
         <div class="panel-hd">// actions</div>
         <div class="action-grid">
-          <button class="btn-secondary action-btn" onclick="exportProgress()">Export Notes</button>
-          <button class="btn-secondary action-btn" onclick="exportBackup()">Export Backup</button>
-          <button class="btn-secondary action-btn" onclick="triggerImportBackup()">Import Backup</button>
-          <button class="btn-secondary action-btn" onclick="forceSyncNow()">Sync Now</button>
+          <button class="btn-secondary action-btn" type="button" data-action="export-progress">Export Notes</button>
+          <button class="btn-secondary action-btn" type="button" data-action="export-backup">Export Backup</button>
+          <button class="btn-secondary action-btn" type="button" data-action="import-backup">Import Backup</button>
+          <button class="btn-secondary action-btn" type="button" data-action="force-sync">Sync Now</button>
         </div>
       </div>
     </div>

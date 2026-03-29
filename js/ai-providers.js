@@ -136,7 +136,7 @@
   function providerCards(selected){
     return Object.keys(PROVIDERS).map(function(id){
       const provider = PROVIDERS[id];
-      return '<button class="provider-card' + (selected === id ? ' active' : '') + '" onclick="switchAIProvider(\'' + id + '\')">' +
+      return '<button class="provider-card' + (selected === id ? ' active' : '') + '" type="button" data-action="switch-ai-provider" data-provider-id="' + id + '">' +
         '<span class="provider-card-name">' + provider.name + '</span>' +
         '<span class="provider-card-meta">' + provider.short + '</span>' +
       '</button>';
@@ -156,22 +156,22 @@
       '<div class="provider-card-grid">' + providerCards(provider.id) + '</div>' +
       '<div class="provider-form">' +
         '<label class="provider-label" for="providerSelect">Provider</label>' +
-        '<select id="providerSelect" class="provider-select" onchange="switchAIProvider(this.value)">' + providerOptions(provider.id) + '</select>' +
+          '<select id="providerSelect" class="provider-select" data-action="switch-ai-provider-select">' + providerOptions(provider.id) + '</select>' +
         '<label class="provider-label" for="providerModelInput">Model</label>' +
-        '<input id="providerModelInput" class="ak-input" value="' + (config.model || '') + '" placeholder="Model name" oninput="updateActiveModel(this.value)">' +
+        '<input id="providerModelInput" class="ak-input" value="' + (config.model || '') + '" placeholder="Model name" data-action="update-active-model">' +
         '<div class="provider-hint">' + provider.hint + '</div>' +
         '<div class="provider-key-wrap' + (hideKey ? ' is-hidden' : '') + '">' +
           '<label class="provider-label" for="providerKeyInput">' + provider.keyLabel + '</label>' +
           '<div class="ak-input-wrap">' +
-            '<input id="providerKeyInput" type="password" placeholder="' + provider.keyPlaceholder + '" class="ak-input" value="' + (config.apiKey || '') + '" oninput="updateActiveKey(this.value)">' +
-            '<span class="ak-vis-btn" onclick="toggleAKVis()">Show</span>' +
+        '<input id="providerKeyInput" type="password" placeholder="' + provider.keyPlaceholder + '" class="ak-input" value="' + (config.apiKey || '') + '" data-action="update-active-key">' +
+        '<span class="ak-vis-btn" role="button" tabindex="0" data-action="toggle-ak-vis">Show</span>' +
           '</div>' +
         '</div>' +
         '<div class="provider-free-note">' + (provider.free ? 'Free option available. Limits vary by provider and account.' : 'Paid API usage may apply depending on your account.') + '</div>' +
       '</div>' +
       '<div style="display:flex;gap:8px;margin-top:18px">' +
-        '<button class="btn-primary" onclick="saveApiKey()">Save & Continue</button>' +
-        '<button class="btn-secondary" onclick="skipApiKey()">Skip for now</button>' +
+      '<button class="btn-primary" type="button" data-action="save-api-key">Save & Continue</button>' +
+      '<button class="btn-secondary" type="button" data-action="skip-api-key">Skip for now</button>' +
       '</div>';
   }
 
@@ -185,13 +185,13 @@
         '<div class="provider-inline-row">' +
           '<div class="provider-inline-group">' +
             '<label class="provider-label" for="genProviderSelect">Provider</label>' +
-            '<select id="genProviderSelect" class="provider-select" onchange="switchAIProvider(this.value,true)">' + providerOptions(provider.id) + '</select>' +
+        '<select id="genProviderSelect" class="provider-select" data-action="switch-ai-provider-generator">' + providerOptions(provider.id) + '</select>' +
           '</div>' +
           '<div class="provider-inline-group">' +
             '<label class="provider-label" for="genModelInput">Model</label>' +
-            '<input id="genModelInput" class="topic-input provider-model-input" value="' + (config.model || '') + '" oninput="updateActiveModel(this.value,true)">' +
+      '<input id="genModelInput" class="topic-input provider-model-input" value="' + (config.model || '') + '" data-action="update-active-model-generator">' +
           '</div>' +
-          '<button class="btn-secondary provider-config-btn" onclick="openApiSetup()">Configure</button>' +
+      '<button class="btn-secondary provider-config-btn" type="button" data-action="open-api-setup">Configure</button>' +
         '</div>' +
         '<div class="provider-hint">' + provider.hint + '</div>' +
       '</div>';

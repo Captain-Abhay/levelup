@@ -863,11 +863,11 @@
         ${data.note ? `<div class="topic-note">${data.note}</div>` : ''}
         <div class="link-row">${links}</div>
         <div class="topic-card-footer">
-          <button class="mark-done-btn" onclick="toggleDone(this,'${track}','${data.name}')">Mark done</button>
-          <button class="note-btn" onclick="toggleNote(this,'${track}','${data.name}')" title="Add note">Notes</button>
+          <button class="mark-done-btn" type="button">Mark done</button>
+          <button class="note-btn" type="button" title="Add note">Notes</button>
         </div>
         <div class="note-box" style="display:none">
-          <textarea class="note-ta" placeholder="Your notes..." rows="3" oninput="saveNote(this,'${track}','${data.name}')" onkeydown="if(event.key==='Escape')this.closest('.note-box').style.display='none'"></textarea>
+          <textarea class="note-ta" placeholder="Your notes..." rows="3"></textarea>
         </div>
       </div>`;
   }
@@ -910,7 +910,7 @@
 
     return '' +
       '<div class=\"phase\" data-track=\"' + track + '\" data-phase=\"' + phaseIndex + '\">' +
-        '<div class=\"phase-header\" onclick=\"togglePhase(this)\">' +
+        '<div class=\"phase-header\" data-action=\"toggle-phase\">' +
           '<div class=\"phase-badge\" style=\"background:' + color.bg + ';color:' + color.color + '\">Phase ' + (phaseIndex + 1) + '</div>' +
           '<div class=\"phase-title\">' + phase.title + '</div>' +
           '<div class=\"phase-meta\">' + meta + '</div>' +

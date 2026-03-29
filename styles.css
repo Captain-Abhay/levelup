@@ -210,6 +210,8 @@ a{text-decoration:none;color:inherit}
 .link-row{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
 .link-pill{font-size:.68rem;padding:3px 8px;border-radius:8px;font-weight:500;border:0.5px solid;transition:opacity .15s;display:inline-flex;align-items:center;gap:3px}
 .link-pill:hover{opacity:.75}
+.inline-action-btn{appearance:none;border:none;background:none;padding:0;color:var(--ai);cursor:pointer;font:inherit;text-decoration:underline}
+.inline-action-btn:hover{opacity:.8}
 .section-label{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px}
 .cert-card{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .cert-icon{font-size:1.1rem;width:28px;text-align:center;flex-shrink:0}
