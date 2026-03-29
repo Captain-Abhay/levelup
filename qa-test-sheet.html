@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LevelUp QA Test Sheet</title>
+<style>
+  :root{
+    --bg:#0c1020;
+    --panel:#151a2f;
+    --panel-2:#1c2340;
+    --line:#2a335c;
+    --text:#eef2ff;
+    --muted:#9ba7d1;
+    --pass:#21c36f;
+    --fail:#e34d5d;
+    --pending:#f2b94b;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,#0b1020,#131934);
+    color:var(--text);
+    font-family:Segoe UI,Arial,sans-serif;
+    padding:24px;
+  }
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+  }
+  .hero{
+    background:rgba(21,26,47,.9);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:24px;
+    margin-bottom:18px;
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:28px;
+  }
+  p{
+    margin:0;
+    color:var(--muted);
+    line-height:1.6;
+  }
+  .meta{
+    margin-top:14px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .pill{
+    padding:8px 12px;
+    border-radius:999px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    font-size:13px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:rgba(21,26,47,.92);
+    border:1px solid var(--line);
+    border-radius:18px;
+    overflow:hidden;
+  }
+  thead th{
+    text-align:left;
+    font-size:13px;
+    letter-spacing:.04em;
+    color:#cfd7ff;
+    background:#1b2140;
+    padding:14px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  tbody td{
+    padding:12px;
+    border-bottom:1px solid rgba(42,51,92,.7);
+    vertical-align:top;
+    font-size:14px;
+  }
+  tbody tr:last-child td{
+    border-bottom:none;
+  }
+  .owner-badge{
+    display:inline-block;
+    min-width:70px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    font-size:12px;
+    text-align:center;
+  }
+  .owner-codex{ color:#8fd4ff; }
+  .owner-user{ color:#ffd27a; }
+  select{
+    width:100%;
+    padding:8px 10px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#11162d;
+    color:var(--text);
+    font-size:13px;
+    outline:none;
+  }
+  select.pass{
+    border-color:rgba(33,195,111,.5);
+    color:#d8ffe7;
+    background:rgba(33,195,111,.12);
+  }
+  select.fail{
+    border-color:rgba(227,77,93,.5);
+    color:#ffd8dd;
+    background:rgba(227,77,93,.12);
+  }
+  select.pending{
+    border-color:rgba(242,185,75,.45);
+    color:#ffe6b3;
+    background:rgba(242,185,75,.12);
+  }
+  .note{
+    color:var(--muted);
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>LevelUp QA Test Sheet</h1>
+      <p>Automated checks completed by Codex are pre-filled. Manual browser and cross-device checks are marked for you to run next.</p>
+      <div class="meta">
+        <div class="pill">Date: 2026-03-29</div>
+        <div class="pill">Workspace: LevelUp</div>
+        <div class="pill">Status dropdown: ✅ Pass / ❌ Fail / Pending</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:34%">Test Case</th>
+          <th style="width:12%">Date</th>
+          <th style="width:12%">Owner</th>
+          <th style="width:16%">Status</th>
+          <th style="width:26%">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Syntax check: <code>js/app.js</code></td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Ran <code>node --check js/app.js</code>.</td>
+        </tr>
+        <tr>
+          <td>Syntax check: <code>js/firebase.js</code></td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Ran <code>node --check js/firebase.js</code>.</td>
+        </tr>
+        <tr>
+          <td>Syntax check: <code>js/heatmap.js</code></td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Ran <code>node --check js/heatmap.js</code>.</td>
+        </tr>
+        <tr>
+          <td>Syntax check: <code>js/roadmap-extensions.js</code></td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Ran <code>node --check js/roadmap-extensions.js</code>.</td>
+        </tr>
+        <tr>
+          <td>Syntax check: <code>js/ai-providers.js</code></td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Ran <code>node --check js/ai-providers.js</code>.</td>
+        </tr>
+        <tr>
+          <td>Source audit: no legacy progress/note/bookmark key writes using <code>track:topic</code></td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Checked active state writes in <code>js/app.js</code>; stable topic IDs are now used.</td>
+        </tr>
+        <tr>
+          <td>Source audit: broken mojibake wording scan across app source</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Scanned <code>index.html</code>, <code>styles.css</code>, and JS files for common mojibake tokens.</td>
+        </tr>
+        <tr>
+          <td>Content sanity: LeetCode links count is 300+</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Static count from <code>index.html</code>: <strong>342</strong> LeetCode link pills.</td>
+        </tr>
+        <tr>
+          <td>Content sanity: topic cards detected for roadmap tracks</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Static count from <code>index.html</code>: <strong>97</strong> topic cards.</td>
+        </tr>
+        <tr>
+          <td>Source audit: favicon present to prevent default browser 404</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Inline favicon exists in <code>index.html</code>.</td>
+        </tr>
+        <tr>
+          <td>Source audit: recommended topic highlight styling exists</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-codex">Codex</span></td>
+          <td>
+            <select class="pass">
+              <option selected>✅ Pass</option>
+              <option>❌ Fail</option>
+              <option>Pending</option>
+            </select>
+          </td>
+          <td class="note">Verified <code>.topic-card.recommended</code> rules in <code>styles.css</code>.</td>
+        </tr>
+        <tr>
+          <td>Manual UI check: hard refresh removes broken text and header renders cleanly</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Open the app, press <code>Ctrl + F5</code>, and inspect header, tabs, intro banners, and cards.</td>
+        </tr>
+        <tr>
+          <td>Manual logic check: marking a topic done increases XP, level progress, heatmap, and streak state correctly</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Check header XP, sidebar XP bar, streak, and activity heatmap after one completion.</td>
+        </tr>
+        <tr>
+          <td>Manual logic check: undo after completion restores progress and XP</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Mark one item done, click Undo in the toast, confirm progress and XP revert.</td>
+        </tr>
+        <tr>
+          <td>Manual logic check: adding a new note persists and does not spam-save on each keystroke</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Type in a note, pause briefly, refresh, and confirm it remains.</td>
+        </tr>
+        <tr>
+          <td>Manual UX check: Resume panel returns to the last visited topic</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Open several topics, reload, then use Resume.</td>
+        </tr>
+        <tr>
+          <td>Manual UX check: Next recommended topic points to the next incomplete topic and is highlighted</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Switch tracks and verify the recommendation changes appropriately.</td>
+        </tr>
+        <tr>
+          <td>Manual search check: search result opens the correct topic card</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Use <code>/</code>, search for a known topic, and confirm the right card opens.</td>
+        </tr>
+        <tr>
+          <td>Manual backup check: export backup then import backup restores state</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Best tested after marking a few topics done and adding a note.</td>
+        </tr>
+        <tr>
+          <td>Manual sync check: sign in and verify progress syncs across refresh or second device</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">This is the main real-world check I cannot complete from the shell.</td>
+        </tr>
+        <tr>
+          <td>Manual AI check: Prompt Mode and at least one API provider flow work end-to-end</td>
+          <td>2026-03-29</td>
+          <td><span class="owner-badge owner-user">You</span></td>
+          <td>
+            <select class="pending">
+              <option selected>Pending</option>
+              <option>✅ Pass</option>
+              <option>❌ Fail</option>
+            </select>
+          </td>
+          <td class="note">Test one free Prompt Mode generation and one in-app provider generation.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    document.querySelectorAll('select').forEach((select) => {
+      const applyClass = () => {
+        select.classList.remove('pass', 'fail', 'pending');
+        if (select.value.includes('Pass')) select.classList.add('pass');
+        else if (select.value.includes('Fail')) select.classList.add('fail');
+        else select.classList.add('pending');
+      };
+      select.addEventListener('change', applyClass);
+      applyClass();
+    });
+  </script>
+</body>
+</html>

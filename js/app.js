@@ -4,15 +4,17 @@
 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let STATE = {
   version: 2,
-  progress: {},   // { 'track:topic': true }
-  notes: {},      // { 'track:topic': 'note text' }
-  bookmarks: {},  // { 'track:topic': true }
+  progress: {},   // { 'topic-id': true }
+  notes: {},      // { 'topic-id': 'note text' }
+  bookmarks: {},  // { 'topic-id': true }
+  completedAt: {}, // { 'topic-id': 'YYYY-MM-DD' }
   streak: 0,
   lastActive: null,
   lastVisited: null,
   weeklyGoal: 10,
   weekDone: 0,
   xp: 0,
+  level: 1,
   genHistory: [],
   apiKey: '',
   aiUsage: { calls: 0, tokens: 0 },
@@ -23,7 +25,12 @@ let _saveTimer = null;
 let _isDirty = false;
 let _lastUndo = null;
 let _toggleLocks = {};
+let _lastActivityRecordedAt = 0;
+let _noteSaveTimers = new Map();
 const APP_LOG_PREFIX='[DevRoadmap]';
+const DOM = {};
+const TOPIC_INDEX = new Map();
+const LEGACY_TOPIC_INDEX = new Map();
 
 function logInfo(message, extra){
   if(typeof extra==='undefined') console.info(APP_LOG_PREFIX, message);
@@ -46,13 +53,23 @@ const MOJIBAKE_EXACT_REPLACEMENTS = {
   'ðŸŽ¯': 'DSA',
   'Ã°Å¸Å½Â¯': 'DSA',
   'ðŸŒ': 'Web',
+  'Ã°Å¸Å’': 'Web',
   'ðŸ¤–': 'AI',
+  'Ã°Å¸Â¤â€“': 'AI',
   'ðŸ“Š': 'Stats',
+  'Ã°Å¸â€œÅ ': 'Stats',
   'ðŸ”‘': 'Key',
+  'Ã°Å¸â€â€˜': 'Key',
   'ðŸš€': 'Go',
+  'Ã°Å¸Å¡â‚¬': 'Go',
+  'ðŸ†': 'Cert',
+  'ðŸ…': 'Cert',
+  'Ã°Å¸Ââ€ ': 'Cert',
+  'Ã°Å¸Ââ€¦': 'Cert',
   'â˜€': 'L',
   'ðŸŒ™': 'D',
   'âŒ¨ï¸': '?',
+  'Ã¢Å’Â¨Ã¯Â¸Â': '?',
   'âœ•': 'x',
   'â–²': '^',
   'â–¼': 'v'
@@ -63,9 +80,11 @@ const MOJIBAKE_INLINE_REPLACEMENTS = [
   ['Ã¢â‚¬â€œ', '-'],
   ['Ã¢â‚¬Â¦', '...'],
   ['Ã¢â‚¬â„¢', "'"],
+  ['Ã¢â€ â€™', '->'],
   ['Ã‚Â·', '|'],
   ['Ã¢â€“Â²', '^'],
   ['Ã¢â€“Â¼', 'v'],
+  ['Ã¢ËœÂÃ¯Â¸Â', ''],
   ['â€”', '-'],
   ['â€“', '-'],
   ['â€¦', '...'],
@@ -80,6 +99,10 @@ const MOJIBAKE_INLINE_REPLACEMENTS = [
   ['Ã°Å¸â€œÅ ', ''],
   ['Ã°Å¸â€â€˜', ''],
   ['Ã°Å¸Å¡â‚¬', ''],
+  ['Ã°Å¸Ââ€ ', ''],
+  ['Ã°Å¸Ââ€¦', ''],
+  ['Ã°Å¸Å’', ''],
+  ['Ã°Å¸Â¤â€“', ''],
   ['Ã¢Ëœï¸', ''],
   ['Ã¢Å’Â¨Ã¯Â¸Â', '?'],
   ['Ã°Å¸â€™Â¾', ''],
@@ -120,9 +143,11 @@ function normalizeMojibakeText(value){
     return prefix + MOJIBAKE_EXACT_REPLACEMENTS[trimmed] + suffix;
   }
   let next = value;
-  MOJIBAKE_INLINE_REPLACEMENTS.forEach(([bad, good]) => {
-    next = next.split(bad).join(good);
-  });
+  for(let i=0;i<3;i++){
+    MOJIBAKE_INLINE_REPLACEMENTS.forEach(([bad, good]) => {
+      next = next.split(bad).join(good);
+    });
+  }
   return next
     .replace(/\s{2,}/g, ' ')
     .replace(/\s+([,.;:!?])/g, '$1')
@@ -152,6 +177,138 @@ function normalizeVisibleText(root=document.body){
   });
 }
 
+function cacheDOM(){
+  DOM.hdrXP = document.getElementById('hdrXP');
+  DOM.hdrLevel = document.getElementById('hdrLevel');
+  DOM.levelBadge = document.getElementById('levelBadge');
+  DOM.levelName = document.getElementById('levelName');
+  DOM.levelSub = document.getElementById('levelSub');
+  DOM.xpBar = document.getElementById('xpBar');
+  DOM.statXP = document.getElementById('statXP');
+  DOM.statDone = document.getElementById('statDone');
+  DOM.statPct = document.getElementById('statPct');
+  DOM.statStreak = document.getElementById('statStreak');
+  DOM.streakNum = document.getElementById('streakNum');
+  DOM.streakMsg = document.getElementById('streakMsg');
+  DOM.goalDone = document.getElementById('goalDone');
+  DOM.goalOf = document.getElementById('goalOf');
+  DOM.goalSub = document.getElementById('goalSub');
+  DOM.goalRing = document.getElementById('goalRing');
+  DOM.trackProgressList = document.getElementById('trackProgressList');
+  DOM.syncPill = document.getElementById('syncPill');
+  DOM.syncLabel = document.getElementById('syncLabel');
+  DOM.historySection = document.getElementById('historySection');
+  DOM.historyChips = document.getElementById('historyChips');
+  DOM.authOverlay = document.getElementById('authOverlay');
+  DOM.userMenuWrap = document.getElementById('userMenuWrap');
+}
+
+function slugify(value){
+  return normalizeMojibakeText(String(value || ''))
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'topic';
+}
+
+function legacyTopicKey(track, topic){
+  return `${track}:${topic}`;
+}
+
+function getTopicKey(cardOrId, fallbackTopic){
+  if(!cardOrId) return null;
+  if(typeof cardOrId === 'string' && !fallbackTopic) return cardOrId;
+  if(typeof cardOrId === 'string' && fallbackTopic){
+    return LEGACY_TOPIC_INDEX.get(legacyTopicKey(cardOrId, fallbackTopic)) || null;
+  }
+  return cardOrId.dataset?.id || null;
+}
+
+function getTopicCard(cardOrId, fallbackTopic){
+  const id = getTopicKey(cardOrId, fallbackTopic);
+  return id ? TOPIC_INDEX.get(id)?.card || null : null;
+}
+
+function getTopicMeta(cardOrId, fallbackTopic){
+  const id = getTopicKey(cardOrId, fallbackTopic);
+  return id ? TOPIC_INDEX.get(id) || null : null;
+}
+
+function assignTopicIds(){
+  TOPIC_INDEX.clear();
+  LEGACY_TOPIC_INDEX.clear();
+  const seen = new Map();
+  let globalOrder = 0;
+  document.querySelectorAll('.phase[data-track][data-phase]').forEach((phase)=>{
+    const track = phase.dataset.track;
+    const phaseIndex = Number(phase.dataset.phase || 0);
+    phase.querySelectorAll('.topic-card[data-track][data-topic]').forEach((card, cardIndex)=>{
+      const topic = card.dataset.topic;
+      const slug = slugify(topic);
+      const occurrenceKey = `${track}:${slug}`;
+      const occurrence = (seen.get(occurrenceKey) || 0) + 1;
+      seen.set(occurrenceKey, occurrence);
+      const id = `${track}-p${phaseIndex + 1}-${slug}-${occurrence}`;
+      card.dataset.id = id;
+      card.dataset.order = String(globalOrder++);
+      const meta = { id, track, topic, phaseIndex, cardIndex, order: globalOrder - 1, card };
+      TOPIC_INDEX.set(id, meta);
+      LEGACY_TOPIC_INDEX.set(legacyTopicKey(track, topic), id);
+    });
+  });
+}
+
+function remapStateKeys(map){
+  const next = {};
+  Object.entries(map || {}).forEach(([key, value])=>{
+    const remapped = LEGACY_TOPIC_INDEX.get(key) || (TOPIC_INDEX.has(key) ? key : null);
+    if(remapped) next[remapped] = value;
+  });
+  return next;
+}
+
+function migrateStateKeys(){
+  STATE.progress = remapStateKeys(STATE.progress);
+  STATE.notes = remapStateKeys(STATE.notes);
+  STATE.bookmarks = remapStateKeys(STATE.bookmarks);
+  STATE.completedAt = remapStateKeys(STATE.completedAt);
+  if(STATE.lastVisited){
+    if(typeof STATE.lastVisited === 'string'){
+      STATE.lastVisited = { id: STATE.lastVisited, ts: Date.now() };
+    }else if(!STATE.lastVisited.id && STATE.lastVisited.track && STATE.lastVisited.topic){
+      const migratedId = LEGACY_TOPIC_INDEX.get(legacyTopicKey(STATE.lastVisited.track, STATE.lastVisited.topic));
+      STATE.lastVisited = migratedId ? { ...STATE.lastVisited, id: migratedId } : null;
+    }
+  }
+}
+
+function ensureWeekState(){
+  const weekStart = getWeekStart();
+  if(STATE.weekStart !== weekStart){
+    STATE.weekStart = weekStart;
+  }
+  STATE.weekDone = Object.values(STATE.completedAt || {}).filter((dateKey)=>dateKey >= weekStart).length;
+}
+
+function getTodayKey(){
+  return window.HeatmapUtils ? window.HeatmapUtils.todayKey() : new Date().toISOString().slice(0,10);
+}
+
+function cloneUndoSnapshot(){
+  return {
+    progress: { ...(STATE.progress || {}) },
+    completedAt: { ...(STATE.completedAt || {}) },
+    streak: STATE.streak || 0,
+    lastActive: STATE.lastActive || null,
+    heatmap: { ...(STATE.heatmap || {}) },
+    xp: STATE.xp || 0,
+    level: STATE.level || 1,
+    weekDone: STATE.weekDone || 0,
+    lastVisited: STATE.lastVisited ? { ...STATE.lastVisited } : null
+  };
+}
+
 function persistLocalSnapshot(){
   try{
     localStorage.setItem('devroadmap-local-state', JSON.stringify(STATE));
@@ -171,6 +328,7 @@ function sanitizeLoadedState(nextState){
   safe.progress = sanitizeObjectMap(safe.progress);
   safe.notes = sanitizeObjectMap(safe.notes);
   safe.bookmarks = sanitizeObjectMap(safe.bookmarks);
+  safe.completedAt = sanitizeObjectMap(safe.completedAt);
   safe.heatmap = sanitizeObjectMap(safe.heatmap);
   safe.aiUsage = safe.aiUsage && typeof safe.aiUsage === 'object' ? safe.aiUsage : { calls: 0, tokens: 0 };
   safe.aiUsage.calls = Number.isFinite(+safe.aiUsage.calls) ? +safe.aiUsage.calls : 0;
@@ -180,6 +338,7 @@ function sanitizeLoadedState(nextState){
   safe.weekDone = Number.isFinite(+safe.weekDone) && +safe.weekDone >= 0 ? parseInt(safe.weekDone, 10) : 0;
   safe.xp = Number.isFinite(+safe.xp) && +safe.xp >= 0 ? parseInt(safe.xp, 10) : 0;
   safe.streak = Number.isFinite(+safe.streak) && +safe.streak >= 0 ? parseInt(safe.streak, 10) : 0;
+  safe.level = Number.isFinite(+safe.level) && +safe.level > 0 ? parseInt(safe.level, 10) : 1;
   if(!safe.lastVisited || typeof safe.lastVisited !== 'object'){
     safe.lastVisited = null;
   }
@@ -213,9 +372,8 @@ window._handleSignIn = async (user) => {
   if (data) {
     STATE = sanitizeLoadedState({ ...STATE, ...data });
     ensureAIState();
-    enhanceTopicCards();
-    applyProgress();
-    renderSidebar();
+    migrateStateKeys();
+    updateApp({ refreshCards: true, rebuildSearch: true, skipSave: true });
     restoreGenHistory();
     updateGenKeyStatus();
   }
@@ -224,9 +382,8 @@ window._handleSignIn = async (user) => {
     if (newData) {
       STATE = sanitizeLoadedState({ ...STATE, ...newData });
       ensureAIState();
-      enhanceTopicCards();
-      applyProgress();
-      renderSidebar();
+      migrateStateKeys();
+      updateApp({ refreshCards: true, rebuildSearch: true, skipSave: true });
       updateGenKeyStatus();
     }
   });
@@ -244,7 +401,7 @@ window._handleSignOut = () => {
 window._demoMode = () => {
   try{
     const saved=localStorage.getItem('devroadmap-local-state');
-    if(saved){ STATE = sanitizeLoadedState(JSON.parse(saved)); }
+    if(saved){ STATE = sanitizeLoadedState(JSON.parse(saved)); migrateStateKeys(); }
   }catch(error){
     logWarn('Failed to restore local demo state', error);
   }
@@ -252,8 +409,7 @@ window._demoMode = () => {
   setTimeout(()=>{ document.getElementById('authOverlay').style.display='none'; },500);
   setSyncStatus('off','Demo');
   ensureAIState();
-  applyProgress();
-  renderSidebar();
+  updateApp({ refreshCards: true, rebuildSearch: true, skipSave: true });
   restoreGenHistory();
   updateGenKeyStatus();
   toast('Demo mode - progress is stored only on this device.','i');
@@ -291,6 +447,29 @@ window.forceSyncNow=()=>{
     .then(()=>{ setSyncStatus('ok','Synced'); toast('Synced!','OK'); _isDirty=false; })
     .catch((error)=>{ logError('Force sync failed', error); setSyncStatus('off','Local'); toast('Sync failed. Try again in a moment.','!'); });
 };
+
+function updateApp(options={}){
+  ensureWeekState();
+  updateLevel();
+  if(options.refreshCards) enhanceTopicCards();
+  if(options.rebuildSearch) buildSearchIndex();
+  applyProgress();
+  renderSidebar();
+  normalizeVisibleText(document.body);
+  try{
+    persistLocalSnapshot();
+  }catch(error){
+    logWarn('Immediate local snapshot failed', error);
+  }
+  if(!options.skipSave) scheduleSave();
+}
+
+function setState(updater, options={}){
+  const previous = typeof structuredClone === 'function' ? structuredClone(STATE) : JSON.parse(JSON.stringify(STATE));
+  updater(STATE);
+  updateApp(options);
+  return previous;
+}
 
 /* â”€â”€ AUTH UI â”€â”€ */
 function updateUserUI(user){
@@ -404,8 +583,10 @@ function escapeAttr(value){
   return String(value).replace(/'/g, "\\'");
 }
 
-function rememberTopic(track, topic){
-  STATE.lastVisited = { track, topic, ts: Date.now() };
+function rememberTopic(cardOrId, fallbackTopic){
+  const meta = getTopicMeta(cardOrId, fallbackTopic);
+  if(!meta) return;
+  STATE.lastVisited = { id: meta.id, track: meta.track, topic: meta.topic, ts: Date.now() };
 }
 
 function triggerImportBackup(){
@@ -434,13 +615,10 @@ async function importBackup(event){
     const parsed=sanitizeLoadedState(JSON.parse(text));
     STATE={ ...STATE, ...parsed };
     ensureAIState();
-    enhanceTopicCards();
-    applyProgress();
-    buildSearchIndex();
-    renderSidebar();
+    migrateStateKeys();
+    updateApp({ refreshCards: true, rebuildSearch: true, skipSave: false });
     restoreGenHistory();
     updateGenKeyStatus();
-    scheduleSave();
     toast('Backup imported successfully','OK');
   }catch(error){
     logError('Backup import failed', error);
@@ -457,30 +635,46 @@ function confirmSignOut(){
 
 /* â”€â”€ PROGRESS TRACKING â”€â”€ */
 function updateBookmarkButtons(){
-  document.querySelectorAll('.topic-card[data-track]').forEach(card=>{
-    const track=card.dataset.track;
-    const topic=card.dataset.topic;
+  document.querySelectorAll('.topic-card[data-id]').forEach(card=>{
     const btn=card.querySelector('.bookmark-btn');
-    const isBookmarked=!!STATE.bookmarks?.[`${track}:${topic}`];
+    const isBookmarked=!!STATE.bookmarks?.[card.dataset.id];
     if(btn){
       btn.classList.toggle('is-bookmarked',isBookmarked);
-      btn.textContent=isBookmarked?'★ Saved':'☆ Save';
+      btn.textContent=isBookmarked?'Saved':'Save';
     }
   });
 }
 
 function enhanceTopicCards(){
-  document.querySelectorAll('.topic-card[data-track]').forEach(card=>{
+  document.querySelectorAll('.topic-card[data-track][data-id]').forEach(card=>{
     const track=card.dataset.track;
     const topic=card.dataset.topic;
-    if(!track || !topic) return;
+    const id=card.dataset.id;
+    if(!track || !topic || !id) return;
     if(!card.dataset.enhanced){
       card.dataset.enhanced='true';
       let footer=card.querySelector('.topic-card-footer');
       const markDone=card.querySelector('.mark-done-btn');
       const noteBtn=card.querySelector('.note-btn');
       const noteBox=card.querySelector('.note-box');
-      if(noteBtn) noteBtn.textContent='Note';
+      if(markDone){
+        markDone.removeAttribute('onclick');
+        markDone.dataset.action='toggle-done';
+        markDone.dataset.id=id;
+      }
+      if(noteBtn){
+        noteBtn.textContent='Note';
+        noteBtn.removeAttribute('onclick');
+        noteBtn.dataset.action='toggle-note';
+        noteBtn.dataset.id=id;
+      }
+      const noteTa=noteBox?.querySelector('.note-ta');
+      if(noteTa){
+        noteTa.removeAttribute('oninput');
+        noteTa.removeAttribute('onkeydown');
+        noteTa.dataset.action='save-note';
+        noteTa.dataset.id=id;
+      }
       if(!footer && markDone && noteBtn){
         footer=document.createElement('div');
         footer.className='topic-card-footer';
@@ -491,15 +685,17 @@ function enhanceTopicCards(){
       }
       card.addEventListener('click',e=>{
         if(e.target.closest('a,button,textarea')) return;
-        rememberTopic(track,topic);
-        scheduleSave();
-        renderSidebar();
+        setState((state)=>{
+          state.lastVisited = { id, track, topic, ts: Date.now() };
+        }, { skipSave: false });
       });
       footer=card.querySelector('.topic-card-footer');
       if(footer && !footer.querySelector('.bookmark-btn')){
         const bookmark=document.createElement('button');
         bookmark.className='bookmark-btn';
-        bookmark.setAttribute('onclick',`toggleBookmark(this,'${escapeAttr(track)}','${escapeAttr(topic)}')`);
+        bookmark.type='button';
+        bookmark.dataset.action='toggle-bookmark';
+        bookmark.dataset.id=id;
         footer.insertBefore(bookmark, footer.firstChild);
       }
     }
@@ -507,35 +703,35 @@ function enhanceTopicCards(){
   updateBookmarkButtons();
 }
 
-function toggleBookmark(btn, track, topic){
-  if(!STATE.bookmarks) STATE.bookmarks={};
-  const key=`${track}:${topic}`;
-  if(STATE.bookmarks[key]) delete STATE.bookmarks[key];
-  else STATE.bookmarks[key]=true;
-  rememberTopic(track,topic);
-  scheduleSave();
-  updateBookmarkButtons();
-  renderSidebar();
-  toast(STATE.bookmarks[key]?'Saved to bookmarks':'Removed from bookmarks', STATE.bookmarks[key]?'Save':'i');
+function toggleBookmark(btn, trackOrId, topic){
+  const meta = getTopicMeta(trackOrId, topic) || getTopicMeta(btn?.dataset?.id);
+  if(!meta) return;
+  let isBookmarked = false;
+  setState((state)=>{
+    if(!state.bookmarks) state.bookmarks={};
+    if(state.bookmarks[meta.id]) delete state.bookmarks[meta.id];
+    else state.bookmarks[meta.id]=true;
+    rememberTopic(meta.id);
+    isBookmarked = !!state.bookmarks[meta.id];
+  });
+  toast(isBookmarked?'Saved to bookmarks':'Removed from bookmarks', isBookmarked?'Save':'i');
 }
 
 function undoLastAction(){
   if(!_lastUndo) return;
-  if(_lastUndo.type==='done'){
-    const { track, topic } = _lastUndo;
-    const key=`${track}:${topic}`;
-    delete STATE.progress[key];
-    STATE.xp=Math.max(0,(STATE.xp||0)-10);
-  }
-  if(_lastUndo.type==='undone'){
-    const { track, topic } = _lastUndo;
-    STATE.progress[`${track}:${topic}`]=true;
-    awardXP(10);
-  }
+  const snapshot = _lastUndo;
   _lastUndo=null;
-  applyProgress();
-  renderSidebar();
-  scheduleSave();
+  setState((state)=>{
+    state.progress = { ...(snapshot.progress || {}) };
+    state.completedAt = { ...(snapshot.completedAt || {}) };
+    state.streak = snapshot.streak || 0;
+    state.lastActive = snapshot.lastActive || null;
+    state.heatmap = { ...(snapshot.heatmap || {}) };
+    state.xp = snapshot.xp || 0;
+    state.level = snapshot.level || 1;
+    state.weekDone = snapshot.weekDone || 0;
+    state.lastVisited = snapshot.lastVisited ? { ...snapshot.lastVisited } : null;
+  });
   toast('Last action undone','Undo');
 }
 
@@ -548,35 +744,40 @@ function showUndoToast(topic){
   setTimeout(()=>{ if(el.isConnected){ el.classList.remove('show'); setTimeout(()=>el.remove(),400); } },5000);
 }
 
-function toggleDone(btn, track, topic){
-  const key=`${track}:${topic}`;
+function toggleDone(btn, trackOrId, topic){
+  const meta = getTopicMeta(trackOrId, topic) || getTopicMeta(btn?.dataset?.id);
+  if(!meta) return;
+  const key = meta.id;
   const now=Date.now();
   if(_toggleLocks[key] && now-_toggleLocks[key] < 350) return;
   _toggleLocks[key]=now;
-  const wasDone=STATE.progress[key];
-  if(wasDone){ delete STATE.progress[key]; STATE.xp=Math.max(0,(STATE.xp||0)-10); }
-  else{ STATE.progress[key]=true; awardXP(10); updateStreak(); updateHeatmap(); _lastUndo={ type:'done', track, topic, ts:now }; }
-  if(wasDone){ _lastUndo={ type:'undone', track, topic, ts:now }; }
-  rememberTopic(track,topic);
-  const card=btn.closest('.topic-card');
-  card.classList.toggle('done-card',!wasDone);
-  btn.classList.toggle('is-done',!wasDone);
-  btn.textContent=!wasDone?'Done':'Mark done';
-  scheduleSave();
-  renderSidebar();
-  if(!wasDone){ confettiBurst(); showUndoToast(topic); }
+  const wasDone=!!STATE.progress[key];
+  _lastUndo = cloneUndoSnapshot();
+  setState((state)=>{
+    rememberTopic(meta.id);
+    if(wasDone){
+      delete state.progress[key];
+      delete state.completedAt[key];
+      addXP(-10);
+    }else{
+      state.progress[key]=true;
+      state.completedAt[key]=getTodayKey();
+      addXP(10);
+      updateDailyActivity({ awardStreakBonus: true, throttleMs: 0 });
+    }
+  });
+  if(!wasDone){ confettiBurst(); showUndoToast(meta.topic); }
 }
 function applyProgress(){
-  document.querySelectorAll('.topic-card[data-track]').forEach(card=>{
-    const track=card.dataset.track, topic=card.dataset.topic;
-    if(!track||!topic) return;
-    const isDone=STATE.progress[`${track}:${topic}`];
+  document.querySelectorAll('.topic-card[data-id]').forEach(card=>{
+    const isDone=STATE.progress[card.dataset.id];
     card.classList.toggle('done-card',!!isDone);
     const btn=card.querySelector('.mark-done-btn');
     if(btn){ btn.classList.toggle('is-done',!!isDone); btn.textContent=isDone?'Done':'Mark done'; }
   });
   applyNotes();
   updateBookmarkButtons();
+  updateRecommendedTopic();
   renderPhaseProgress();
 }
 
@@ -587,58 +788,80 @@ const LEVELS=[
   {name:'Tech Lead',min:2200,max:3000},{name:'Architect',min:3000,max:4000},{name:'Staff Engineer',min:4000,max:5500},
   {name:'FAANG Ready',min:5500,max:Infinity}
 ];
-function getLevel(xp){ return LEVELS.findIndex((l,i)=>xp>=l.min&&(i===LEVELS.length-1||xp<LEVELS[i+1].min)); }
-function awardXP(pts){ STATE.xp=(STATE.xp||0)+pts; }
+function getLevel(xp){ return Math.max(1, Math.floor((xp || 0) / 100) + 1); }
+function getLevelName(level){
+  const levelIndex = Math.min(Math.max(level - 1, 0), LEVELS.length - 1);
+  return LEVELS[levelIndex]?.name || `Level ${level}`;
+}
+function addXP(amount){
+  STATE.xp = Math.max(0, (STATE.xp || 0) + amount);
+  STATE.level = getLevel(STATE.xp);
+}
+function updateLevel(){
+  STATE.level = getLevel(STATE.xp || 0);
+}
 function renderXP(){
   const xp=STATE.xp||0;
-  const li=getLevel(xp);
-  const lv=LEVELS[li];
-  const lvNext=LEVELS[Math.min(li+1,LEVELS.length-1)];
-  const pct=lv.max===Infinity?100:Math.round((xp-lv.min)/(lvNext.min-lv.min)*100);
-  document.getElementById('levelBadge').textContent=li+1;
-  document.getElementById('levelName').textContent=lv.name;
-  document.getElementById('levelSub').textContent=lv.max===Infinity?'Max level!':`${lvNext.min-xp} XP to Level ${li+2}`;
-  document.getElementById('xpBar').style.width=pct+'%';
-  document.getElementById('hdrXP').textContent=xp;
-  document.getElementById('hdrLevel').textContent=`Lv.${li+1}`;
-  document.getElementById('statXP').textContent=xp;
+  const level=STATE.level || getLevel(xp);
+  const currentFloor=(level-1)*100;
+  const nextFloor=level*100;
+  const pct=Math.min(100, Math.round(((xp-currentFloor)/Math.max(nextFloor-currentFloor,1))*100));
+  if(DOM.levelBadge) DOM.levelBadge.textContent=level;
+  if(DOM.levelName) DOM.levelName.textContent=getLevelName(level);
+  if(DOM.levelSub) DOM.levelSub.textContent=`${Math.max(0,nextFloor-xp)} XP to Level ${level+1}`;
+  if(DOM.xpBar) DOM.xpBar.style.width=pct+'%';
+  if(DOM.hdrXP) DOM.hdrXP.textContent=xp;
+  if(DOM.hdrLevel) DOM.hdrLevel.textContent=`Lv.${level}`;
+  if(DOM.statXP) DOM.statXP.textContent=xp;
 }
 
 /* â”€â”€ STREAK â”€â”€ */
-function updateStreak(){
-  const today=new Date().toISOString().slice(0,10);
-  const last=STATE.lastActive;
-  if(last===today){ return; }
-  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
-  if(last===yesterday){ STATE.streak=(STATE.streak||0)+1; }
-  else if(last&&last!==today){ STATE.streak=1; }
-  else{ STATE.streak=(STATE.streak||0)+1; }
-  STATE.lastActive=today;
-  // Weekly done
-  const weekStart=getWeekStart();
-  if(!STATE.weekStart||STATE.weekStart!==weekStart){ STATE.weekDone=0; STATE.weekStart=weekStart; }
-  STATE.weekDone=(STATE.weekDone||0)+1;
-}
 function getWeekStart(){ const d=new Date(); d.setDate(d.getDate()-d.getDay()); return d.toISOString().slice(0,10); }
-function updateHeatmap(){
-  const today=window.HeatmapUtils ? window.HeatmapUtils.todayKey() : new Date().toISOString().slice(0,10);
-  STATE.heatmap=STATE.heatmap||{};
-  STATE.heatmap[today]=(STATE.heatmap[today]||0)+1;
+function updateDailyActivity({ awardStreakBonus=false, throttleMs=0 } = {}){
+  const today=getTodayKey();
+  const now = Date.now();
+  if(!throttleMs || now - _lastActivityRecordedAt >= throttleMs){
+    STATE.heatmap=STATE.heatmap||{};
+    STATE.heatmap[today]=(STATE.heatmap[today]||0)+1;
+    _lastActivityRecordedAt = now;
+  }
+  const last=STATE.lastActive;
+  if(last===today) return;
+  if(last){
+    const diff=Math.round((new Date(today)-new Date(last))/86400000);
+    STATE.streak=diff===1?(STATE.streak||0)+1:1;
+  }else{
+    STATE.streak=1;
+  }
+  STATE.lastActive=today;
+  if(awardStreakBonus){
+    addXP(Math.min(25, 5 + Math.max(0, STATE.streak - 1) * 2));
+  }
 }
 
 /* â”€â”€ SIDEBAR â”€â”€ */
 let _totalTopicsCache=0;
 function getFirstUndoneTopic(track){
-  const selector=track ? `.topic-card[data-track="${track}"]` : '.topic-card[data-track]';
+  const selector=track ? `.topic-card[data-track="${track}"][data-id]` : '.topic-card[data-track][data-id]';
   const cards=[...document.querySelectorAll(selector)];
-  return cards.find(card=>!STATE.progress[`${card.dataset.track}:${card.dataset.topic}`]) || null;
+  return cards.find(card=>!STATE.progress[card.dataset.id]) || null;
+}
+
+function getNextTopic(){
+  const activeTrack=document.querySelector('.track.active')?.id;
+  return getFirstUndoneTopic(activeTrack) || getFirstUndoneTopic();
+}
+
+function updateRecommendedTopic(){
+  document.querySelectorAll('.topic-card.recommended').forEach((card)=>card.classList.remove('recommended'));
+  const next = getNextTopic();
+  if(next) next.classList.add('recommended');
 }
 
 function renderNextTopicPanel(){
   const panel=document.getElementById('nextTopicPanel');
   if(!panel) return;
-  const activeTrack=document.querySelector('.track.active')?.id;
-  const next=getFirstUndoneTopic(activeTrack) || getFirstUndoneTopic();
+  const next=getNextTopic();
   if(!next){
     panel.innerHTML='<div class="helper-empty">You cleared every currently loaded topic. Nice work.</div>';
     return;
@@ -646,7 +869,7 @@ function renderNextTopicPanel(){
   panel.innerHTML=`
     <div class="helper-title">${next.dataset.topic}</div>
     <div class="helper-copy">Recommended next step from ${next.dataset.track.toUpperCase()} based on what is still incomplete.</div>
-    <div class="helper-link" onclick="goToTopic('${next.dataset.track}','${escapeAttr(next.dataset.topic)}')">Open topic</div>
+    <div class="helper-link" onclick="goToTopic('${next.dataset.id}')">Open topic</div>
   `;
 }
 
@@ -654,15 +877,16 @@ function renderResumePanel(){
   const panel=document.getElementById('resumePanel');
   if(!panel) return;
   const last=STATE.lastVisited;
-  if(!last || !last.track || !last.topic){
+  if(!last || !last.id){
     panel.innerHTML='<div class="helper-empty">Start any topic and this panel will help you jump back in later.</div>';
     return;
   }
-  const meta=last.ts ? new Date(last.ts).toLocaleString() : 'Recently visited';
+  const topicMeta = getTopicMeta(last.id) || last;
+  const visitedAt = last.ts ? new Date(last.ts).toLocaleString() : 'Recently visited';
   panel.innerHTML=`
-    <div class="helper-title">${last.topic}</div>
-    <div class="helper-meta">${last.track.toUpperCase()} · ${meta}</div>
-    <div class="helper-link" onclick="goToTopic('${last.track}','${escapeAttr(last.topic)}')">Resume</div>
+    <div class="helper-title">${topicMeta.topic}</div>
+    <div class="helper-meta">${topicMeta.track.toUpperCase()} | ${visitedAt}</div>
+    <div class="helper-link" onclick="goToTopic('${topicMeta.id}')">Resume</div>
   `;
 }
 
@@ -675,9 +899,9 @@ function renderBookmarksPanel(){
     return;
   }
   panel.innerHTML=entries.map(key=>{
-    const [track,...rest]=key.split(':');
-    const topic=rest.join(':');
-    return `<div class="helper-item"><div class="helper-title">${topic}</div><div class="helper-meta">${track.toUpperCase()}</div><div class="helper-link" onclick="goToTopic('${track}','${escapeAttr(topic)}')">Open</div></div>`;
+    const meta = getTopicMeta(key);
+    if(!meta) return '';
+    return `<div class="helper-item"><div class="helper-title">${meta.topic}</div><div class="helper-meta">${meta.track.toUpperCase()}</div><div class="helper-link" onclick="goToTopic('${meta.id}')">Open</div></div>`;
   }).join('');
 }
 
@@ -685,34 +909,36 @@ function renderSidebar(){
   renderXP();
   // Overall stats
   const allKeys=Object.keys(STATE.progress);
-  if(!_totalTopicsCache) _totalTopicsCache=document.querySelectorAll('.topic-card[data-topic]').length||1;
+  if(!_totalTopicsCache) _totalTopicsCache=document.querySelectorAll('.topic-card[data-id]').length||1;
   const totalTopics=_totalTopicsCache;
-  document.getElementById('statDone').textContent=allKeys.length;
-  document.getElementById('statPct').textContent=Math.round(allKeys.length/totalTopics*100)+'%';
-  document.getElementById('statStreak').textContent=(STATE.streak||0)+' days';
+  if(DOM.statDone) DOM.statDone.textContent=allKeys.length;
+  if(DOM.statPct) DOM.statPct.textContent=Math.round(allKeys.length/totalTopics*100)+'%';
+  if(DOM.statStreak) DOM.statStreak.textContent=(STATE.streak||0)+' days';
   // Track progress
   const tracks=['dsa','webdev','ai'];
   const trackNames={'dsa':'DSA','webdev':'Web Dev','ai':'AI / ML'};
-  const list=document.getElementById('trackProgressList');
-  list.innerHTML=tracks.map(t=>{
-    const done=Object.keys(STATE.progress).filter(k=>k.startsWith(t+':')).length;
-    const total=document.querySelectorAll(`.topic-card[data-track="${t}"]`).length||1;
+  if(DOM.trackProgressList){
+    DOM.trackProgressList.innerHTML=tracks.map(t=>{
+    const done=document.querySelectorAll(`.topic-card[data-track="${t}"][data-id].done-card`).length;
+    const total=document.querySelectorAll(`.topic-card[data-track="${t}"][data-id]`).length||1;
     const pct=Math.round(done/total*100);
     return `<div class="track-prog"><div class="tp-row"><span class="tp-name">${trackNames[t]}</span><span class="tp-pct">${pct}%</span></div><div class="tp-bar"><div class="tp-fill" style="width:${pct}%"></div></div></div>`;
-  }).join('');
+    }).join('');
+  }
   // Weekly goal
+  ensureWeekState();
   const wg=STATE.weeklyGoal||10;
   const wd=STATE.weekDone||0;
-  document.getElementById('goalDone').textContent=Math.min(wd,wg);
-  document.getElementById('goalOf').textContent='/ '+wg;
-  document.getElementById('goalSub').textContent=`${Math.min(wd,wg)} of ${wg} topics`;
-  const ring=document.getElementById('goalRing');
+  if(DOM.goalDone) DOM.goalDone.textContent=Math.min(wd,wg);
+  if(DOM.goalOf) DOM.goalOf.textContent='/ '+wg;
+  if(DOM.goalSub) DOM.goalSub.textContent=`${Math.min(wd,wg)} of ${wg} topics`;
+  const ring=DOM.goalRing;
   const pct2=Math.min(wd/wg,1);
   const circ=175.9;
-  ring.style.strokeDashoffset=circ-(circ*pct2);
+  if(ring) ring.style.strokeDashoffset=circ-(circ*pct2);
   // Streak
-  document.getElementById('streakNum').textContent=STATE.streak||0;
-  document.getElementById('streakMsg').textContent=STATE.streak>0?`Last active ${STATE.lastActive||'today'}`:'Start today!';
+  if(DOM.streakNum) DOM.streakNum.textContent=STATE.streak||0;
+  if(DOM.streakMsg) DOM.streakMsg.textContent=STATE.streak>0?`Last active ${STATE.lastActive||'today'}`:'Start today!';
   // Heatmap
   renderHeatmap();
   renderPhaseProgress();
@@ -723,8 +949,8 @@ function renderSidebar(){
 function renderPhaseProgress(){
   document.querySelectorAll('.phase[data-track][data-phase]').forEach(ph=>{
     const track=ph.dataset.track, pi=ph.dataset.phase;
-    const cards=ph.querySelectorAll('.topic-card[data-topic]');
-    const done=[...cards].filter(c=>STATE.progress[`${track}:${c.dataset.topic}`]).length;
+    const cards=ph.querySelectorAll('.topic-card[data-id]');
+    const done=[...cards].filter(c=>STATE.progress[c.dataset.id]).length;
     const pct=cards.length?Math.round(done/cards.length*100):0;
     const fill=document.getElementById(`pp-${track}-${pi}`);
     const pctEl=document.getElementById(`ppt-${track}-${pi}`);
@@ -743,7 +969,18 @@ function renderHeatmap(){
 /* â”€â”€ WEEKLY GOAL EDIT â”€â”€ */
 function editWeeklyGoal(){
   const v=prompt('Set weekly goal (topics to complete per week):',STATE.weeklyGoal||10);
-  if(v&&!isNaN(v)&&parseInt(v)>0){ STATE.weeklyGoal=parseInt(v); scheduleSave(); renderSidebar(); }
+  if(v&&!isNaN(v)&&parseInt(v,10)>0){
+    setState((state)=>{
+      state.weeklyGoal=parseInt(v,10);
+    });
+  }
+}
+
+function scrollToLastVisited(){
+  const last = STATE.lastVisited;
+  if(last?.id){
+    goToTopic(last.id);
+  }
 }
 
 /* â”€â”€ TAB / PHASE TOGGLE â”€â”€ */
@@ -752,6 +989,8 @@ function switchTrack(id,el){
   document.querySelectorAll('.track').forEach(t=>t.classList.remove('active'));
   document.getElementById(id)?.classList.add('active');
   el.classList.add('active');
+  updateRecommendedTopic();
+  renderNextTopicPanel();
 }
 function togglePhase(hdr){
   const body=hdr.nextElementSibling;
@@ -761,13 +1000,54 @@ function togglePhase(hdr){
   ch.style.transform=isOpen?'':'rotate(180deg)';
 }
 
+function handleDelegatedClick(event){
+  const actionEl = event.target.closest('[data-action]');
+  if(!actionEl) return;
+  const id = actionEl.dataset.id;
+  switch(actionEl.dataset.action){
+    case 'toggle-done':
+      event.preventDefault();
+      toggleDone(actionEl, id);
+      break;
+    case 'toggle-note':
+      event.preventDefault();
+      toggleNote(actionEl, id);
+      break;
+    case 'toggle-bookmark':
+      event.preventDefault();
+      toggleBookmark(actionEl, id);
+      break;
+    default:
+      break;
+  }
+}
+
+function handleDelegatedInput(event){
+  const input = event.target.closest('[data-action="save-note"]');
+  if(!input) return;
+  const id = input.dataset.id;
+  clearTimeout(_noteSaveTimers.get(id));
+  const timer = setTimeout(()=>{
+    saveNote(input, id);
+    _noteSaveTimers.delete(id);
+  }, 250);
+  _noteSaveTimers.set(id, timer);
+}
+
+function handleDelegatedKeydown(event){
+  const input = event.target.closest('[data-action="save-note"]');
+  if(input && event.key === 'Escape'){
+    input.closest('.note-box')?.style.setProperty('display','none');
+  }
+}
+
 /* â”€â”€ GLOBAL SEARCH â”€â”€ */
 const SEARCH_INDEX=[];
 function buildSearchIndex(){
   SEARCH_INDEX.length=0;
-  document.querySelectorAll('.topic-card[data-topic]').forEach(c=>{
-    const track=c.dataset.track, topic=c.dataset.topic;
-    SEARCH_INDEX.push({label:topic,type:'topic',track,card:c,
+  document.querySelectorAll('.topic-card[data-id]').forEach(c=>{
+    const track=c.dataset.track, topic=c.dataset.topic, id=c.dataset.id;
+    SEARCH_INDEX.push({label:topic,type:'topic',track,card:c,id,
       links:[...c.querySelectorAll('.link-pill')].map(l=>l.textContent.trim()).join(' ')});
   });
 }
@@ -779,20 +1059,23 @@ function renderSearch(){
   if(!q){ res.innerHTML='<div style="padding:20px;text-align:center;color:var(--t4);font-size:.78rem">Type to search topics, resources, and certificates...</div>'; return; }
   const matches=SEARCH_INDEX.filter(i=>i.label.toLowerCase().includes(q)||i.links.toLowerCase().includes(q)).slice(0,12);
   if(!matches.length){ res.innerHTML='<div style="padding:16px;text-align:center;color:var(--t4);font-size:.78rem">No results found</div>'; return; }
-  res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.track}','${m.card.dataset.topic}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${m.track.toUpperCase()}</span></div>`).join('');
+  res.innerHTML=matches.map(m=>`<div class="gs-item" onclick="goToTopic('${m.id}');closeSearch()"><span>${m.label}</span><span class="gs-item-tag">${m.track.toUpperCase()}</span></div>`).join('');
 }
-function goToTopic(track,topic){
-  const tabBtn=[...document.querySelectorAll('.tab')].find(t=>t.textContent.toLowerCase().includes(track.toLowerCase()));
+function goToTopic(trackOrId,topic){
+  const meta = getTopicMeta(trackOrId, topic);
+  if(!meta) return;
+  const tabBtn=[...document.querySelectorAll('.tab')].find(t=>t.textContent.toLowerCase().includes(meta.track.toLowerCase()));
   if(tabBtn) tabBtn.click();
   setTimeout(()=>{
-    const card=document.querySelector(`.topic-card[data-track="${track}"][data-topic="${CSS.escape(topic)}"]`);
+    const card=getTopicCard(meta.id);
     if(card){
       const body=card.closest('.phase-body');
       const header=body?.previousElementSibling;
       body?.classList.add('open');
       if(header){ header.querySelector('.chevron')?.setAttribute('style','transform:rotate(180deg)'); }
-      rememberTopic(track,topic);
-      renderSidebar();
+      setState((state)=>{
+        state.lastVisited = { id: meta.id, track: meta.track, topic: meta.topic, ts: Date.now() };
+      });
       card.scrollIntoView({behavior:'smooth',block:'center'});
       card.style.outline='2px solid var(--ai)';
       setTimeout(()=>card.style.outline='',2000);
@@ -967,37 +1250,45 @@ function confettiBurst(){
 
 /* â”€â”€ NOTES â”€â”€ */
 function toggleNote(btn, track, topic){
-  const card=btn.closest('.topic-card');
+  const card=getTopicCard(track, topic) || btn.closest('.topic-card');
   const box=card ? card.querySelector('.note-box') : btn.nextElementSibling;
   if(!box) return;
   const isOpen=box.style.display!=='none';
   box.style.display=isOpen?'none':'block';
   if(!isOpen){
     const ta=box.querySelector('.note-ta');
-    ta.value=STATE.notes?.[`${track}:${topic}`]||'';
+    const key = card?.dataset?.id || getTopicKey(track, topic);
+    ta.value=STATE.notes?.[key]||'';
     ta.focus();
   }
 }
 function saveNote(ta, track, topic){
-  if(!STATE.notes) STATE.notes={};
+  const meta = getTopicMeta(track, topic) || getTopicMeta(ta?.dataset?.id);
+  if(!meta) return;
   const val=ta.value.trim();
-  if(val){ STATE.notes[`${track}:${topic}`]=val; }
-  else{ delete STATE.notes[`${track}:${topic}`]; }
+  const hadNote=!!STATE.notes?.[meta.id];
+  setState((state)=>{
+    if(!state.notes) state.notes={};
+    if(val){
+      state.notes[meta.id]=val;
+      if(!hadNote) addXP(3);
+    }else{
+      delete state.notes[meta.id];
+    }
+    updateDailyActivity({ throttleMs: 15000 });
+  });
   // Update note button indicator
   const btn=ta.closest('.topic-card')?.querySelector('.note-btn');
   if(btn){
     btn.classList.toggle('has-note',!!val);
     btn.title=val?'Edit note (has note)':'Add note';
   }
-  scheduleSave();
 }
 function applyNotes(){
   if(!STATE.notes) return;
   Object.entries(STATE.notes).forEach(([key,val])=>{
     if(!val) return;
-    const [track,...rest]=key.split(':');
-    const topic=rest.join(':');
-    const card=document.querySelector(`.topic-card[data-track="${track}"][data-topic="${CSS.escape(topic)}"]`);
+    const card=getTopicCard(key);
     if(!card) return;
     const btn=card.querySelector('.note-btn');
     if(btn){ btn.classList.add('has-note'); btn.title='Edit note (has note)'; }
@@ -1007,7 +1298,7 @@ function applyNotes(){
 /* â”€â”€ EXPORT â”€â”€ */
 function exportProgress(){
   const done=Object.keys(STATE.progress);
-  const total=document.querySelectorAll('.topic-card[data-topic]').length;
+  const total=document.querySelectorAll('.topic-card[data-id]').length;
   const lines=[
     '# DevRoadmap Pro - Progress Export',
     `Generated: ${new Date().toLocaleString()}`,
@@ -1015,10 +1306,16 @@ function exportProgress(){
     `XP: ${STATE.xp||0} | Streak: ${STATE.streak||0} days`,
     '',
     '## Completed Topics',
-    ...done.map(k=>`- [x] ${k.replace(':',' -> ')}`),
+    ...done.map((k)=>{
+      const meta=getTopicMeta(k);
+      return `- [x] ${meta ? `${meta.track.toUpperCase()} -> ${meta.topic}` : k}`;
+    }),
     '',
     '## Notes',
-    ...Object.entries(STATE.notes||{}).map(([k,v])=>`### ${k.replace(':',' -> ')}\n${v}`),
+    ...Object.entries(STATE.notes||{}).map(([k,v])=>{
+      const meta=getTopicMeta(k);
+      return `### ${meta ? `${meta.track.toUpperCase()} -> ${meta.topic}` : k}\n${v}`;
+    }),
   ];
   const blob=new Blob([lines.join('\n')],{type:'text/plain'});
   const a=document.createElement('a');
@@ -1045,17 +1342,25 @@ function restoreGenHistory(){
 /* â”€â”€ INIT â”€â”€ */
 document.addEventListener('DOMContentLoaded',()=>{
   ensureAIState();
+  cacheDOM();
   // Restore theme
   const savedTheme=localStorage.getItem('theme');
   if(savedTheme==='light'){ document.documentElement.dataset.theme='light'; document.getElementById('hdr').querySelector('.ic-btn[onclick*=toggleTheme]').textContent='D'; }
 
   if(window.RoadmapExtensions){ window.RoadmapExtensions.apply(); }
+  assignTopicIds();
+  migrateStateKeys();
   normalizeVisibleText(document.body);
+  requestAnimationFrame(()=>normalizeVisibleText(document.body));
   renderAIProviderUI();
   enhanceTopicCards();
   buildSearchIndex();
-  renderSidebar();
+  updateApp({ skipSave: true });
   updateGenKeyStatus();
+  document.addEventListener('click', handleDelegatedClick);
+  document.addEventListener('input', handleDelegatedInput);
+  document.addEventListener('change', handleDelegatedInput);
+  document.addEventListener('keydown', handleDelegatedKeydown);
 
   // Keyboard shortcuts
   document.addEventListener('keydown',e=>{
@@ -1081,7 +1386,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('offline',()=>setOnline(false));
   if(!navigator.onLine) setOnline(false);
   logInfo('App initialized', {
-    topics: document.querySelectorAll('.topic-card[data-topic]').length,
+    topics: document.querySelectorAll('.topic-card[data-id]').length,
     activeProvider: getActiveProvider().name
   });
 });
@@ -1098,6 +1403,10 @@ window.addEventListener('error',(event)=>{
 
 window.addEventListener('unhandledrejection',(event)=>{
   logError('Unhandled promise rejection', event.reason);
+});
+
+window.addEventListener('load',()=>{
+  normalizeVisibleText(document.body);
 });
 
 /* â”€â”€ KEYBOARD HELP â”€â”€ */
