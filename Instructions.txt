@@ -1,0 +1,109 @@
+🐛 BUGS (Functional Issues)
+Hardcoded problem count (~30 problems) doesn’t match actual links
+“Free AI mode” UI exists but no real logic
+storageBucket is incorrect (firebasestorage.app)
+Possible mismatch between topic keys and note indicator IDs
+No guarantee applyStateToUI() runs after every state change
+XP display (hdrXP) not consistently updated
+Level display not dynamically recalculated
+Sync status (Local / Syncing / Synced) not reliably updated
+No error handling for failed Firestore writes
+No retry logic for failed sync
+onSnapshot listener not guarded against invalid JSON
+Potential memory leak if _fbWatch called repeatedly
+No debounce on rapid toggleDone() clicks
+Duplicate topic names could overwrite progress keys
+Notes not tied to structured schema → risk of collision
+No validation for empty or corrupted saved state
+API key validation is UI-only (not enforced before usage)
+AI “subscription mode” claims proxy usage but none exists
+skipApiKey() doesn’t persist state → resets on refresh
+Auth error message not cleared after success
+⚠️ UX / PRODUCT ISSUES
+Misleading “~250 problems” claim vs actual content
+No loading state when syncing from Firestore
+No feedback when marking topic done (no toast/animation)
+No undo for accidental “Mark done”
+No confirmation before sign out
+No onboarding/tutorial for first-time users
+API setup screen feels mandatory but can be skipped silently
+No indication of which topics are high priority
+No difficulty labels (easy/medium/hard)
+No progress percentage per topic (only phase-level)
+Notes UI is hidden and not discoverable
+No search highlighting (just navigation)
+No mobile-specific UX optimization (tap targets, spacing)
+No empty state (if no progress yet)
+No visual reward for completing a phase
+🚀 MISSING FEATURES (Important)
+No XP gain logic when marking topics done
+No streak system logic (UI exists but not functional)
+No daily activity tracking logic
+No “resume where you left off” feature
+No recommended next topic
+No bookmarking system
+No revision/reminder system
+No difficulty-based filtering
+No sorting (by progress, difficulty, etc.)
+No progress export/import validation
+No multi-user conflict resolution (last write wins blindly)
+No offline mode support
+No caching layer (always depends on Firestore)
+No versioning of user data
+No backup/restore mechanism
+🤖 AI SYSTEM ISSUES
+No rate limiting for AI calls
+No usage tracking enforcement (UI only)
+No fallback if API key invalid
+No timeout handling for API calls
+No error UI for failed AI responses
+No streaming response support
+No prompt optimization or reuse
+No distinction between different AI tasks (mentor vs generator)
+No security around exposing API key in frontend
+“Free mode” not implemented (just conceptual)
+⚙️ PERFORMANCE ISSUES
+Entire DOM queried repeatedly (querySelectorAll) without caching
+No virtualization (large roadmap = slow rendering)
+No lazy loading of phases
+All phases rendered even if collapsed
+No throttling on search input
+Firestore writes on every click (no batching)
+No compression/minification of saved data
+Notes stored inline → increases payload size
+No separation of concerns (UI + logic mixed heavily)
+Large single HTML file → poor maintainability
+🧱 ARCHITECTURE PROBLEMS
+No modular structure (everything in one file)
+No state management system (manual object mutation)
+No separation between data layer and UI layer
+No reusable components (topic card repeated manually)
+Hardcoded content → not scalable
+No schema validation for Firestore data
+No environment separation (dev vs prod)
+No config abstraction (everything inline)
+No routing system (single-page but no structure)
+No testability (no isolated functions/modules)
+🔐 SECURITY ISSUES
+Firebase config exposed (expected but still sensitive context)
+API key stored client-side without encryption
+No Firestore security rules shown/enforced
+No validation before saving user data
+No protection against malformed input (notes, etc.)
+🎨 UI / DESIGN IMPROVEMENTS
+No skeleton loaders (everything appears instantly)
+No animations for transitions (phase open/close minimal)
+No visual hierarchy for important topics
+No color differentiation for difficulty
+No hover/tooltips for icons
+No dark/light theme persistence (if not implemented elsewhere)
+Sidebar could be collapsible
+No responsive grid tuning for small screens
+No “completed” celebration UI
+No accessibility (ARIA roles, keyboard nav incomplete)
+📊 DATA / ANALYTICS GAPS
+No tracking of time spent per topic
+No tracking of revisit frequency
+No analytics dashboard
+No completion trends over time
+No “weak area” detection
